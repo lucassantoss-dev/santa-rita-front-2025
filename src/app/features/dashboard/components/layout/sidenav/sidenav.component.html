@@ -1,0 +1,35 @@
+<div class="sidenav">
+  <div class="sidenav-header">
+    <img [width]="profilePicSize()" [height]="profilePicSize()" [src]="logoUrl" alt="Logo" style="object-fit: cover;">
+  </div>
+  <mat-nav-list>
+    <ng-container *ngFor="let item of menuItems()">
+      <!-- Normal Item -->
+      <a mat-list-item class="menu-item" *ngIf="!item.isDropdown" (click)="navigateAndClose(item.route)"
+        [ngClass]="{'selected-menu-item': isActive(item.route || '')}">
+        <mat-icon matListItemIcon>{{item.icon}}</mat-icon>
+        <span matListItemTitle *ngIf="!sidenavCollapsed()">{{item.label}}</span>
+      </a>
+
+      <!-- Dropdown Item -->
+      <div *ngIf="item.isDropdown">
+        <a mat-list-item class="menu-item-dropdown" (click)="handleDropdownClick()">
+          <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+          <span matListItemTitle *ngIf="!sidenavCollapsed()">{{ item.label }}</span>
+          <mat-icon class="dropdown-icon" *ngIf="!sidenavCollapsed()">
+            {{ dropdownOpen() ? 'expand_less' : 'expand_more' }}
+          </mat-icon>
+        </a>
+
+        <!-- Submenu -->
+        <div class="dropdown-container" *ngIf="dropdownOpen() && !sidenavCollapsed()">
+          <a mat-list-item class="dropdown-item" *ngFor="let subItem of item.children"
+            (click)="navigateAndClose(subItem.route)" [ngClass]="{'selected-menu-item': isActive(subItem.route || '')}">
+            <mat-icon matListItemIcon>{{ subItem.icon }}</mat-icon>
+            <span matListItemTitle>{{ subItem.label }}</span>
+          </a>
+        </div>
+      </div>
+    </ng-container>
+  </mat-nav-list>
+</div>

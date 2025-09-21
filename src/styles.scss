@@ -1,0 +1,12 @@
+/* styles.scss */
+:root {
+  --primary-color: #111e31;
+  --accent-color: #3f51b5;
+  --text-on-primary: #ffffff;
+}
+
+/* Use essas variáveis diretamente nos seus estilos */
+body {
+  background-color: var(--primary-color);
+  color: var(--text-on-primary);
+}

@@ -1,0 +1,48 @@
+<div class="dashboard">
+  <mat-toolbar class="mat-elevation-z3 toolbar"
+    [ngStyle]="{'background-color': config?.config?.branding?.primaryColor || '#111e31'}">
+    <button mat-icon-button (click)="collapsed.set(!collapsed())">
+      <mat-icon style="color: white;">
+        menu
+      </mat-icon>
+    </button>
+    <div class="profile">
+      <div class="profile-img">
+        <img src="https://i.pinimg.com/originals/e4/ca/65/e4ca654b02667099de64d670ae2a4371.jpg" alt="Logo">
+      </div>
+      <div class="profile-infos">
+        <span style="font-size: 14px; color: #111e31;">{{user?.user?.name}}</span>
+        <span>{{user?.user?.roleName}}</span>
+      </div>
+      <mat-icon class="dropdown-icon" [matMenuTriggerFor]="profileMenu">expand_more</mat-icon>
+    </div>
+  </mat-toolbar>
+  <mat-menu #profileMenu="matMenu">
+    <button mat-menu-item (click)="abrirConfiguracoes()">
+      <mat-icon>settings</mat-icon>
+      <span class="label-button">Configurações</span>
+    </button>
+    <button mat-menu-item (click)="editarPerfil()">
+      <mat-icon>edit</mat-icon>
+      <span class="label-button">Editar Perfil</span>
+    </button>
+    <button mat-menu-item (click)="sair()">
+      <mat-icon>logout</mat-icon>
+      <span class="label-button">Sair</span>
+    </button>
+  </mat-menu>
+  <mat-sidenav-container class="sidenav-container custom-container">
+    <mat-sidenav #drawer [mode]="sidenavMode()" [opened]="sidenavOpened()" [fixedInViewport]="isMobileView()"
+      [style.width]="sidenavWidth()" class="custom-sidenav" style="background-color: #b1bfc8;"
+      (openedChange)="onOpenedChange($event)">
+      <app-sidenav [collapsed]="collapsed()" [openDropdownSignal]="openDropdownSignal()"
+        (itemClicked)="handleItemClick(drawer)" (requestExpandAndOpenDropdown)="handleExpandAndOpenDropdown()">
+      </app-sidenav>
+    </mat-sidenav>
+
+    <mat-sidenav-content class="content" [ngStyle]="{'margin-left': getContentMargin()}">
+      <div class="backdrop-overlay" *ngIf="sidenavMode() === 'over' && !collapsed()"></div>
+      <router-outlet></router-outlet>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+</div>

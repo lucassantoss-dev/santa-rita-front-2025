@@ -1,0 +1,81 @@
+<div class="login-wrapper">
+  <div class="login-image"></div>
+  <div class="login-form-side">
+    <form [formGroup]="form">
+      <div class="container-login-form">
+        <div
+          class="flex-column align-items-center justify-content-center text-center"
+        >
+          <img
+            [src]="config?.branding?.logoUrl ? config.branding.logoUrl : 'assets/logo1.png'"
+            alt="Logo"
+            style="height: 130px; margin-bottom: 30px"
+          />
+          <p class="login-description">Acesse sua conta</p>
+          <p class="login-subdescription">
+            Entre com seu e-mail e senha para ter acesso à plataforma
+          </p>
+        </div>
+        <div class="content-login">
+          <div class="form-group">
+            <input
+              type="email"
+              class="form-control email"
+              formControlName="email"
+              id="email"
+              placeholder="Digite seu e-mail"
+            />
+          </div>
+          <div class="form-group" style="position: relative">
+            <input
+              [type]="showPassword ? 'text' : 'password'"
+              formControlName="password"
+              class="form-control"
+              id="password"
+              placeholder="Digite sua senha"
+            />
+            <button
+              type="button"
+              (click)="togglePasswordVisibility()"
+              style="
+                position: absolute;
+                top: 12px;
+                right: 10px;
+                background: none;
+                border: none;
+                cursor: pointer;
+                color: #fff;
+                font-size: 16px;
+              "
+            >
+              <i
+                class="fas"
+                [ngClass]="showPassword ? 'fa-eye' : 'fa-eye-slash'"
+              ></i>
+            </button>
+          </div>
+          <div class="recuperar-senha">
+            <a href="#">Esqueceu a senha?</a>
+          </div>
+          <div class="buttons">
+            <button
+              mat-raised-button
+              class="button-login"
+              [ngStyle]="{
+                'background-color':
+                  '#111e31'
+              }"
+              (click)="handleLogin()"
+            >
+              Entrar
+            </button>
+          </div>
+        </div>
+        <div class="login-footer">
+          <span>Copyright 2025 ® Todos os direitos reservados. Cemitério Santa Rita</span>
+          <span class="login-version">v1.0</span>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

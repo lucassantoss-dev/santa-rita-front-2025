@@ -1,0 +1,139 @@
+<div *ngIf="loadingCep" class="cep-loading">
+  <app-loading></app-loading>
+</div>
+<form
+  [formGroup]="clientForm"
+  (ngSubmit)="onSubmit()"
+  class="client-form"
+  *ngIf="!loadingCep"
+>
+  <div class="form-row">
+    <mat-form-field appearance="outline">
+      <mat-label>Quadra</mat-label>
+      <mat-select formControlName="quadra" required>
+        <mat-option *ngFor="let q of quadras" [value]="q">{{ q }}</mat-option>
+      </mat-select>
+      <mat-error *ngIf="clientForm.get('quadra')?.hasError('required')"
+        >Quadra obrigatória</mat-error
+      >
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Complemento</mat-label>
+      <input matInput formControlName="complemento" required />
+      <mat-error *ngIf="clientForm.get('complemento')?.hasError('required')"
+        >Complemento obrigatório</mat-error
+      >
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Número</mat-label>
+      <input matInput type="number" formControlName="numero" required />
+      <mat-error *ngIf="clientForm.get('numero')?.hasError('required')"
+        >Número obrigatório</mat-error
+      >
+    </mat-form-field>
+  </div>
+  <div class="form-row">
+    <mat-form-field appearance="outline">
+      <mat-label>Tipo</mat-label>
+      <mat-select formControlName="tipo" required>
+        <mat-option *ngFor="let t of tipos" [value]="t">{{ t }}</mat-option>
+      </mat-select>
+      <mat-error *ngIf="clientForm.get('tipo')?.hasError('required')"
+        >Tipo obrigatório</mat-error
+      >
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Nome</mat-label>
+      <input matInput formControlName="nome" required />
+      <mat-error *ngIf="clientForm.get('nome')?.hasError('required')"
+        >Nome obrigatório</mat-error
+      >
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>CPF</mat-label>
+      <input matInput formControlName="cpf" required mask="000.000.000-00" />
+      <mat-error *ngIf="clientForm.get('cpf')?.hasError('required')"
+        >CPF obrigatório</mat-error
+      >
+    </mat-form-field>
+  </div>
+  <div class="form-row">
+    <mat-form-field appearance="outline">
+      <mat-label>CEP</mat-label>
+      <input
+        matInput
+        formControlName="cep"
+        required
+        mask="00000-000"
+        (blur)="buscarCep()"
+      />
+      <mat-error *ngIf="clientForm.get('cep')?.hasError('required')"
+        >CEP obrigatório</mat-error
+      >
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Rua</mat-label>
+      <input matInput formControlName="rua" required />
+      <mat-error *ngIf="clientForm.get('rua')?.hasError('required')"
+        >Rua obrigatória</mat-error
+      >
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Cidade</mat-label>
+      <input matInput formControlName="cidade" required />
+      <mat-error *ngIf="clientForm.get('cidade')?.hasError('required')"
+        >Cidade obrigatória</mat-error
+      >
+    </mat-form-field>
+  </div>
+  <div class="form-row">
+    <mat-form-field appearance="outline">
+      <mat-label>Bairro</mat-label>
+      <input matInput formControlName="bairro" required />
+      <mat-error *ngIf="clientForm.get('bairro')?.hasError('required')"
+        >Bairro obrigatório</mat-error
+      >
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Estado</mat-label>
+      <mat-select formControlName="estado" required>
+        <mat-option *ngFor="let e of estados" [value]="e.sigla">{{
+          e.nome
+        }}</mat-option>
+      </mat-select>
+      <mat-error *ngIf="clientForm.get('estado')?.hasError('required')"
+        >Estado obrigatório</mat-error
+      >
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Contato</mat-label>
+      <input
+        matInput
+        formControlName="contato"
+        required
+        mask="(00) 00000-0000"
+      />
+      <mat-error *ngIf="clientForm.get('contato')?.hasError('required')"
+        >Contato obrigatório</mat-error
+      >
+    </mat-form-field>
+  </div>
+  <div class="form-actions">
+    <button
+      mat-raised-button
+      color="secondary"
+      style="margin-right: 8px;"
+      (click)="onCancel()"
+    >
+      Cancelar
+    </button>
+    <button
+      mat-raised-button
+      color="primary"
+      type="submit"
+      [disabled]="clientForm.invalid"
+    >
+      Salvar
+    </button>
+  </div>
+</form>

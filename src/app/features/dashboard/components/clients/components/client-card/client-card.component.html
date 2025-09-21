@@ -1,0 +1,53 @@
+<div class="card-print-layout">
+  <div class="card-side card-left">
+    <div class="row">
+      <div class="field-label">ENDEREÇO</div>
+      <div class="field-value">{{ client.address }}</div>
+    </div>
+    <div class="row">
+      <div class="field-label">CIDADE</div>
+      <div class="field-value">{{ client.city }}</div>
+      <div class="field-label">UF</div>
+      <div class="field-value">{{ client.state }}</div>
+      <div class="field-label">BAIRRO/DISTRITO</div>
+      <div class="field-value">{{ client.district }}</div>
+    </div>
+    <div class="row">
+      <div class="field-label">CEP</div>
+      <div class="field-value">{{ client.cep || '--' }}</div>
+      <div class="field-label">FONE</div>
+      <div class="field-value">{{ client.phone || '--' }}</div>
+    </div>
+    <div class="row">
+      <div class="field-info">
+        Ao portador desta carteira de identidade, serão concedidos os direitos e deveres ao qual lhe confere a Associação Filantrópica do Cemitério Santa Rita
+      </div>
+    </div>
+  </div>
+  <div class="card-side card-right">
+    <div class="header">
+      <div class="org-title">Associação Filantrópica do</div>
+      <div class="org-title">Cemitério Santa Rita</div>
+      <div class="org-info">Fundada em 14/11/2009<br> CNPJ 11.347.229/0001-13<br> Av. Sargento Hermínio, 1628</div>
+    </div>
+    <div class="logo-row">
+      <img src="assets/afcsr-logo.png" alt="Logo" class="logo" />
+    </div>
+    <div class="main-title">SÓCIO CONTRIBUINTE</div>
+    <div class="row">
+      <div class="field-label">TITULAR</div>
+      <div class="field-value field-bold">{{ client.name }}</div>
+    </div>
+    <div class="row">
+      <div class="field-label">QUADRA</div>
+      <div class="field-value">{{ client.block }}</div>
+      <div class="field-label">TIPO</div>
+      <div class="field-value">{{ client.type }}</div>
+      <div class="field-label">Nº CONTRIBUINTE</div>
+      <div class="field-value">{{ client.number }}</div>
+    </div>
+    <div class="signature-row">
+      <div class="signature">_____________________________<br>Assinatura do Presidente</div>
+    </div>
+  </div>
+</div>
