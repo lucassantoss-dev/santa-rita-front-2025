@@ -1,0 +1,248 @@
+<div class="payment-container">
+  <div class="payment-card">
+    <div class="payment-header">
+      <h1>Pagamento Rápido</h1>
+      <p>Complete seu pagamento em 3 passos simples</p>
+    </div>
+
+    <mat-stepper #stepper [linear]="true" class="payment-stepper">
+      <!-- Etapa 1: CPF -->
+      <mat-step [stepControl]="cpfFormGroup" label="Dados">
+        <ng-template matStepLabel>
+          <mat-icon>person</mat-icon>
+          <span>Dados</span>
+        </ng-template>
+
+        <div class="step-content">
+          <h2>Informe seu CPF</h2>
+          <p>Digite seu CPF para continuar com o pagamento</p>
+
+          <form [formGroup]="cpfFormGroup" class="step-form">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>CPF</mat-label>
+              <input matInput
+                     formControlName="cpf"
+                     placeholder="000.000.000-00"
+                     mask="000.000.000-00"
+                     maxlength="14">
+              <mat-icon matSuffix>credit_card</mat-icon>
+              <mat-error *ngIf="cpfFormGroup.get('cpf')?.hasError('required')">
+                CPF é obrigatório
+              </mat-error>
+              <mat-error *ngIf="cpfFormGroup.get('cpf')?.hasError('invalidCpf')">
+                CPF inválido
+              </mat-error>
+            </mat-form-field>
+          </form>
+        </div>
+
+        <div class="step-actions">
+          <button mat-raised-button
+                  color="primary"
+                  [disabled]="!cpfFormGroup.valid"
+                  (click)="nextStep()"
+                  class="continue-btn">
+            <mat-icon>arrow_forward</mat-icon>
+            Continuar
+          </button>
+        </div>
+      </mat-step>
+
+      <!-- Etapa 2: Método de Pagamento -->
+      <mat-step [stepControl]="paymentMethodFormGroup" label="Pagamento">
+        <ng-template matStepLabel>
+          <mat-icon>payment</mat-icon>
+          <span>Pagamento</span>
+        </ng-template>
+
+        <div class="step-content">
+          <h2>Escolha o método de pagamento</h2>
+          <p>Selecione como deseja realizar o pagamento</p>
+
+          <form [formGroup]="paymentMethodFormGroup" class="payment-methods">
+            <div class="payment-options">
+              <mat-card class="payment-option"
+                        [class.selected]="selectedPaymentMethod === 'pix'"
+                        (click)="selectPaymentMethod('pix')">
+                <mat-card-content>
+                  <div class="payment-icon">
+                    <mat-icon>qr_code</mat-icon>
+                  </div>
+                  <h3>PIX</h3>
+                  <p>Pagamento instantâneo</p>
+                  <span class="payment-time">Aprovação imediata</span>
+                </mat-card-content>
+              </mat-card>
+
+              <mat-card class="payment-option"
+                        [class.selected]="selectedPaymentMethod === 'card'"
+                        (click)="selectPaymentMethod('card')">
+                <mat-card-content>
+                  <div class="payment-icon">
+                    <mat-icon>credit_card</mat-icon>
+                  </div>
+                  <h3>Cartão</h3>
+                  <p>Débito ou Crédito</p>
+                  <span class="payment-time">Aprovação em até 2 min</span>
+                </mat-card-content>
+              </mat-card>
+
+              <mat-card class="payment-option"
+                        [class.selected]="selectedPaymentMethod === 'boleto'"
+                        (click)="selectPaymentMethod('boleto')">
+                <mat-card-content>
+                  <div class="payment-icon">
+                    <mat-icon>receipt</mat-icon>
+                  </div>
+                  <h3>Boleto</h3>
+                  <p>Bancário</p>
+                  <span class="payment-time">Aprovação em 1-2 dias úteis</span>
+                </mat-card-content>
+              </mat-card>
+            </div>
+          </form>
+        </div>
+
+        <div class="step-actions">
+          <button mat-button (click)="previousStep()" class="back-btn">
+            <mat-icon>arrow_back</mat-icon>
+            Voltar
+          </button>
+          <button mat-raised-button
+                  color="primary"
+                  [disabled]="!paymentMethodFormGroup.valid"
+                  (click)="nextStep()"
+                  class="continue-btn">
+            <mat-icon>arrow_forward</mat-icon>
+            Continuar
+          </button>
+        </div>
+      </mat-step>
+
+      <!-- Etapa 3: Finalização -->
+      <mat-step label="Finalizar">
+        <ng-template matStepLabel>
+          <mat-icon>check_circle</mat-icon>
+          <span>Finalizar</span>
+        </ng-template>
+
+        <div class="step-content">
+          <!-- PIX -->
+          <div *ngIf="selectedPaymentMethod === 'pix'" class="payment-result">
+            <div class="payment-success-header">
+              <mat-icon class="success-icon">qr_code</mat-icon>
+              <h2>Pagamento via PIX</h2>
+              <p>Escaneie o QR Code ou copie o código</p>
+            </div>
+
+            <div class="qr-code-container">
+              <div class="qr-code" [innerHTML]="qrCodeSvg"></div>
+              <div class="pix-info">
+                <h3>Código PIX</h3>
+                <div class="pix-code-container">
+                  <input class="pix-code" [value]="pixCode" readonly>
+                  <button mat-icon-button (click)="copyPixCode()" class="copy-btn">
+                    <mat-icon>content_copy</mat-icon>
+                  </button>
+                </div>
+                <p class="pix-instructions">
+                  Abra o app do seu banco, escolha PIX copia e cola, e cole o código acima
+                </p>
+              </div>
+            </div>
+
+            <div class="payment-details">
+              <div class="detail-row">
+                <span>Valor:</span>
+                <strong>R$ 120,00</strong>
+              </div>
+              <div class="detail-row">
+                <span>Vencimento:</span>
+                <strong>{{ getExpirationTime() }}</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cartão -->
+          <div *ngIf="selectedPaymentMethod === 'card'" class="payment-result">
+            <div class="payment-success-header">
+              <mat-icon class="success-icon">credit_card</mat-icon>
+              <h2>Pagamento via Cartão</h2>
+              <p>Preencha os dados do seu cartão</p>
+            </div>
+
+            <form class="card-form">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Número do Cartão</mat-label>
+                <input matInput placeholder="0000 0000 0000 0000" mask="0000 0000 0000 0000">
+              </mat-form-field>
+
+              <div class="card-row">
+                <mat-form-field appearance="outline">
+                  <mat-label>Validade</mat-label>
+                  <input matInput placeholder="MM/AA" mask="00/00">
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>CVV</mat-label>
+                  <input matInput placeholder="000" mask="000">
+                </mat-form-field>
+              </div>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Nome no Cartão</mat-label>
+                <input matInput placeholder="Nome como está no cartão">
+              </mat-form-field>
+            </form>
+          </div>
+
+          <!-- Boleto -->
+          <div *ngIf="selectedPaymentMethod === 'boleto'" class="payment-result">
+            <div class="payment-success-header">
+              <mat-icon class="success-icon">receipt</mat-icon>
+              <h2>Pagamento via Boleto</h2>
+              <p>Seu boleto foi gerado com sucesso</p>
+            </div>
+
+            <div class="boleto-info">
+              <div class="boleto-details">
+                <h3>Dados do Boleto</h3>
+                <div class="detail-row">
+                  <span>Valor:</span>
+                  <strong>R$ 120,00</strong>
+                </div>
+                <div class="detail-row">
+                  <span>Vencimento:</span>
+                  <strong>{{ getBoletoExpirationDate() }}</strong>
+                </div>
+                <div class="detail-row">
+                  <span>Código de Barras:</span>
+                  <strong>{{ boletoCode }}</strong>
+                </div>
+              </div>
+
+              <button mat-raised-button color="primary" (click)="downloadBoleto()" class="download-btn">
+                <mat-icon>download</mat-icon>
+                Baixar Boleto
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-actions">
+          <button mat-button (click)="previousStep()" class="back-btn">
+            <mat-icon>arrow_back</mat-icon>
+            Voltar
+          </button>
+          <button mat-raised-button
+                  color="primary"
+                  (click)="finishPayment()"
+                  class="finish-btn">
+            <mat-icon>check</mat-icon>
+            {{ selectedPaymentMethod === 'pix' ? 'Aguardar Pagamento' : 'Finalizar Pagamento' }}
+          </button>
+        </div>
+      </mat-step>
+    </mat-stepper>
+  </div>
+</div>

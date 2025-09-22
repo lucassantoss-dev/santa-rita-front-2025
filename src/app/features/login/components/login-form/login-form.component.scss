@@ -39,6 +39,27 @@
   color: #111e31;
   font-size: 14px;
   margin-bottom: 20px;
+  line-height: 1px;
+}
+
+.payment-subdescription {
+  color: #111e31;
+  font-size: 14px;
+  margin-bottom: 20px;
+
+  a {
+  color: #047a8a !important;
+  text-decoration: underline !important;
+  text-decoration-color: transparent !important;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+a:hover {
+  color: #035d6a !important;
+  text-decoration-color: #047a8a !important;
+  text-underline-offset: 3px;
+}
 }
 
 .container-login {
