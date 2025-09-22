@@ -49,4 +49,9 @@ export class LoginFormComponent implements OnInit {
 			})
 		}
 	}
+
+  redirectToPayment(): void {
+    const url = `/payments`;
+    this.router.navigate([url]).then((res: boolean) => res).catch((error) => console.error(error));
+  }
 }
