@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Location } from '@angular/common';
+import { ClientService } from '../../../../../../core/client.service';
 
 @Component({
   selector: 'app-client-form',
@@ -9,7 +10,7 @@ import { Location } from '@angular/common';
   styleUrl: './client-form.component.scss'
 })
 export class ClientFormComponent implements OnInit {
-  clientForm: FormGroup;
+  clientForm!: FormGroup;
   quadras = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
   tipos = [
     'Canteiro',
@@ -48,24 +49,16 @@ export class ClientFormComponent implements OnInit {
   ];
   loadingCep = false;
 
-  constructor(private fb: FormBuilder, private http: HttpClient, private location: Location) {
-    this.clientForm = this.fb.group({
-      quadra: ['', Validators.required],
-      complemento: ['', Validators.required],
-      numero: ['', [Validators.required, Validators.pattern('^[0-9]+$')]],
-      tipo: ['', Validators.required],
-      nome: ['', Validators.required],
-      cpf: ['', Validators.required],
-      cep: ['', Validators.required],
-      rua: ['', Validators.required],
-      cidade: ['', Validators.required],
-      bairro: ['', Validators.required],
-      estado: ['', Validators.required],
-      contato: ['', Validators.required]
-    });
-  }
+  constructor(
+    private fb: FormBuilder,
+    private http: HttpClient,
+    private location: Location,
+    private clientService: ClientService
+  ) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.initializeForm();
+  }
 
   buscarCep() {
     const cep = this.clientForm.get('cep')?.value?.replace(/\D/g, '');
@@ -94,10 +87,15 @@ export class ClientFormComponent implements OnInit {
 
   onSubmit() {
     if (this.clientForm.valid) {
-      // Salvar cliente
-      const cliente = this.clientForm.value;
-      // ... lógica de envio/salvamento
-      console.log('Cliente salvo:', cliente);
+      this.clientService.createClient(this.clientForm.value).subscribe({
+        next: () => {
+          alert('Cliente cadastrado com sucesso!');
+          this.location.back();
+        },
+        error: (error: Error) => {
+          alert('Erro ao cadastrar cliente. Tente novamente. ' + error.message);
+        }
+      });
     } else {
       this.clientForm.markAllAsTouched();
     }
@@ -105,5 +103,22 @@ export class ClientFormComponent implements OnInit {
 
   onCancel(): void {
     this.location.back();
+  }
+
+  private initializeForm() {
+    this.clientForm = this.fb.group({
+      quadra: ['', Validators.required],
+      complemento: ['', Validators.required],
+      numero: ['', [Validators.required, Validators.pattern('^[0-9]+$')]],
+      tipo: ['', Validators.required],
+      nome: ['', Validators.required],
+      cpf: ['', Validators.required],
+      cep: ['', Validators.required],
+      rua: ['', Validators.required],
+      cidade: ['', Validators.required],
+      bairro: ['', Validators.required],
+      estado: ['', Validators.required],
+      contato: ['', Validators.required]
+    });
   }
 }

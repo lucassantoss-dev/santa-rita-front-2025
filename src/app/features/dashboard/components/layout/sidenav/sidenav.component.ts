@@ -55,6 +55,12 @@ export class SidenavComponent implements OnInit {
         route: 'dashboard/clients'
       });
 
+      items.push({
+        icon: 'person',
+        label: 'Pagamentos',
+        route: 'dashboard/payments'
+      });
+
       // const children: MenuItem[] = [];
 
       // children.push({ icon: 'monitor', label: 'Equipamentos', route: 'dashboard/equipments' });

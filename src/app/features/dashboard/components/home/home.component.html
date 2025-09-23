@@ -1,1 +1,244 @@
-<p>home works!</p>
+<div class="dashboard-container">
+  <!-- Header do Dashboard -->
+  <div class="dashboard-header">
+    <h1 class="dashboard-title">
+      <mat-icon>dashboard</mat-icon>
+      Dashboard Administrativo
+    </h1>
+    <div class="header-actions">
+      <button mat-raised-button color="primary" class="quick-action-btn">
+        <mat-icon>add</mat-icon>
+        Novo Cliente
+      </button>
+      <!-- <button mat-raised-button color="accent" class="quick-action-btn">
+        <mat-icon>receipt</mat-icon>
+        Gerar Certificado
+      </button> -->
+    </div>
+  </div>
+
+  <!-- Métricas Principais -->
+  <div class="metrics-grid">
+    <mat-card class="metric-card clients-card">
+      <mat-card-content>
+        <div class="metric-header">
+          <mat-icon class="metric-icon">people</mat-icon>
+          <div class="metric-info">
+            <h3 class="metric-value">{{totalClients}}</h3>
+            <p class="metric-label">Clientes Ativos</p>
+          </div>
+        </div>
+        <div class="metric-change positive">
+          <mat-icon>trending_up</mat-icon>
+          <span>+{{newClientsThisMonth}} este mês</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- <mat-card class="metric-card payments-card">
+      <mat-card-content>
+        <div class="metric-header">
+          <mat-icon class="metric-icon">payment</mat-icon>
+          <div class="metric-info">
+            <h3 class="metric-value">R$ {{totalRevenue | number:'1.2-2'}}</h3>
+            <p class="metric-label">Receita Mensal</p>
+          </div>
+        </div>
+        <div class="metric-change positive">
+          <mat-icon>trending_up</mat-icon>
+          <span>+{{revenueGrowth}}% vs mês anterior</span>
+        </div>
+      </mat-card-content>
+    </mat-card> -->
+
+    <mat-card class="metric-card certificates-card">
+      <mat-card-content>
+        <div class="metric-header">
+          <mat-icon class="metric-icon">description</mat-icon>
+          <div class="metric-info">
+            <h3 class="metric-value">{{certificatesIssued}}</h3>
+            <p class="metric-label">Certificados Emitidos</p>
+          </div>
+        </div>
+        <div class="metric-change neutral">
+          <mat-icon>trending_flat</mat-icon>
+          <span>{{certificatesPending}} pendentes</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="metric-card cards-card">
+      <mat-card-content>
+        <div class="metric-header">
+          <mat-icon class="metric-icon">credit_card</mat-icon>
+          <div class="metric-info">
+            <h3 class="metric-value">{{memberCards}}</h3>
+            <p class="metric-label">Carteirinhas Ativas</p>
+          </div>
+        </div>
+        <div class="metric-change neutral">
+          <mat-icon>schedule</mat-icon>
+          <span>{{cardsToRenew}} p/ renovar</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Seção Principal do Dashboard -->
+  <div class="dashboard-main">
+    <!-- Atividades Recentes -->
+    <mat-card class="activity-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>history</mat-icon>
+          Atividades Recentes
+        </mat-card-title>
+        <div class="card-actions">
+          <button mat-icon-button>
+            <mat-icon>more_vert</mat-icon>
+          </button>
+        </div>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="activity-list">
+          <div class="activity-item" *ngFor="let activity of recentActivities">
+            <div class="activity-icon" [ngClass]="activity.type">
+              <mat-icon>{{activity.icon}}</mat-icon>
+            </div>
+            <div class="activity-content">
+              <h4>{{activity.title}}</h4>
+              <p>{{activity.description}}</p>
+              <span class="activity-time">{{activity.timestamp | date:'short'}}</span>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Gráfico de Receita -->
+    <mat-card class="chart-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>bar_chart</mat-icon>
+          Receita dos Últimos 6 Meses
+        </mat-card-title>
+        <div class="card-actions">
+          <button mat-button class="chart-period-btn"
+                  [class.active]="selectedPeriod === '6m'"
+                  (click)="selectPeriod('6m')">6M</button>
+          <button mat-button class="chart-period-btn"
+                  [class.active]="selectedPeriod === '1y'"
+                  (click)="selectPeriod('1y')">1A</button>
+        </div>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="chart-container">
+          <div class="chart-placeholder">
+            <mat-icon>insert_chart</mat-icon>
+            <p>Gráfico de receita será implementado aqui</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Seção de Ações Rápidas -->
+  <div class="quick-actions-section">
+    <mat-card class="quick-actions-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>flash_on</mat-icon>
+          Ações Rápidas
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="quick-actions-grid">
+          <button mat-raised-button class="quick-action-item" (click)="navigateToClients()">
+            <mat-icon>person_add</mat-icon>
+            <span>Cadastrar Cliente</span>
+          </button>
+          <button mat-raised-button class="quick-action-item" (click)="generateCertificate()">
+            <mat-icon>description</mat-icon>
+            <span>Gerar Certificado</span>
+          </button>
+          <button mat-raised-button class="quick-action-item" (click)="processPayment()">
+            <mat-icon>payment</mat-icon>
+            <span>Processar Pagamento</span>
+          </button>
+          <button mat-raised-button class="quick-action-item" (click)="issueMemberCard()">
+            <mat-icon>credit_card</mat-icon>
+            <span>Emitir Carteirinha</span>
+          </button>
+          <button mat-raised-button class="quick-action-item" (click)="viewReports()">
+            <mat-icon>assessment</mat-icon>
+            <span>Relatórios</span>
+          </button>
+          <button mat-raised-button class="quick-action-item" (click)="manageSettings()">
+            <mat-icon>settings</mat-icon>
+            <span>Configurações</span>
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Status do Sistema -->
+    <mat-card class="status-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>monitor_heart</mat-icon>
+          Status do Sistema
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="status-list">
+          <div class="status-item">
+            <div class="status-indicator online"></div>
+            <span>Servidor Principal</span>
+            <mat-icon class="status-icon">check_circle</mat-icon>
+          </div>
+          <div class="status-item">
+            <div class="status-indicator online"></div>
+            <span>Base de Dados</span>
+            <mat-icon class="status-icon">check_circle</mat-icon>
+          </div>
+          <div class="status-item">
+            <div class="status-indicator warning"></div>
+            <span>Backup Automático</span>
+            <mat-icon class="status-icon">warning</mat-icon>
+          </div>
+          <div class="status-item">
+            <div class="status-indicator online"></div>
+            <span>Integração ViaCEP</span>
+            <mat-icon class="status-icon">check_circle</mat-icon>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Alertas e Notificações -->
+  <div class="alerts-section" *ngIf="alerts.length > 0">
+    <mat-card class="alerts-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>notifications</mat-icon>
+          Alertas e Notificações
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="alerts-list">
+          <div class="alert-item" *ngFor="let alert of alerts" [ngClass]="alert.type">
+            <mat-icon class="alert-icon">{{alert.icon}}</mat-icon>
+            <div class="alert-content">
+              <h4>{{alert.title}}</h4>
+              <p>{{alert.message}}</p>
+            </div>
+            <button mat-icon-button class="alert-dismiss" (click)="dismissAlert(alert.id)">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
