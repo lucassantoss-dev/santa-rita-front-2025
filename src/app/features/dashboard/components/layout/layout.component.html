@@ -1,6 +1,5 @@
 <div class="dashboard">
-  <mat-toolbar class="mat-elevation-z3 toolbar"
-    [ngStyle]="{'background-color': config?.config?.branding?.primaryColor || '#111e31'}">
+  <mat-toolbar class="mat-elevation-z3 toolbar professional-toolbar">
     <button mat-icon-button (click)="collapsed.set(!collapsed())">
       <mat-icon style="color: white;">
         menu
@@ -11,13 +10,13 @@
         <img src="https://i.pinimg.com/originals/e4/ca/65/e4ca654b02667099de64d670ae2a4371.jpg" alt="Logo">
       </div>
       <div class="profile-infos">
-        <span style="font-size: 14px; color: #111e31;">{{user?.user?.name}}</span>
-        <span>{{user?.user?.roleName}}</span>
+        <span style="font-size: 14px;">{{getUserName()}}</span>
+        <span>{{getUserRole()}}</span>
       </div>
-      <mat-icon class="dropdown-icon" [matMenuTriggerFor]="profileMenu">expand_more</mat-icon>
+      <mat-icon class="dropdown-icon" [class.menu-open]="profileMenuOpen()" [matMenuTriggerFor]="profileMenu">expand_more</mat-icon>
     </div>
   </mat-toolbar>
-  <mat-menu #profileMenu="matMenu">
+  <mat-menu #profileMenu="matMenu" (opened)="onProfileMenuOpened()" (closed)="onProfileMenuClosed()">
     <button mat-menu-item (click)="abrirConfiguracoes()">
       <mat-icon>settings</mat-icon>
       <span class="label-button">Configurações</span>

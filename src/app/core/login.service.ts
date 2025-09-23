@@ -17,7 +17,7 @@ export class LoginService {
 	}
 
 	login(params: LoginInterface): Observable<LoginInterface> {
-		const url: string = `${this.urlBackEnd}/login`;
+		const url: string = `${this.urlBackEnd}/auth/signin`;
 		return this.http.post<LoginInterface>(url, params);
 	}
 }

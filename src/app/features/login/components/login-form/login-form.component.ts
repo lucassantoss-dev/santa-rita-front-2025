@@ -11,8 +11,8 @@ import { LocalStorageService } from '../../../../core/local-storage.service';
 })
 export class LoginFormComponent implements OnInit {
 	form: FormGroup = this.formBuilder.group({
-		email: new FormControl('', [Validators.required]),
-		password: new FormControl('', [Validators.required]),
+		email: new FormControl('lucassantossdev1@gmail.com', [Validators.required]),
+		password: new FormControl('9204Spfc!', [Validators.required]),
 	});
   config: any;
   showPassword = false;
@@ -34,17 +34,19 @@ export class LoginFormComponent implements OnInit {
 	handleLogin(): void {
 		if (this.form.valid) {
 			const formvalue = Object.assign({}, this.form.getRawValue());
+      console.log('formvalue', formvalue);
 			this.loginService.login(formvalue).subscribe({
 				next: (data: any) => {
-					console.log('realizou login!');
-					this.localStorage.setItem('token', data.returnedUser.token);
-					this.localStorage.setItem('user', data)
+					console.log('realizou login!', data);
+					this.localStorage.setItem('token', data.data.token.token);
+					this.localStorage.setItem('user', data.data.token.user)
 					const url = `/dashboard`;
 					this.router.navigate([url]).then((res: boolean) => res).catch((error) => console.error(error));
 				}, error: (error: Error) => {
 					console.error('Ocorreu um erro ao realizar login', error);
-					const url = `/dashboard`;
-					this.router.navigate([url]).then((res: boolean) => res).catch((error) => console.error(error));
+					// Remover navegação automática em caso de erro para debugar
+					// const url = `/dashboard`;
+					// this.router.navigate([url]).then((res: boolean) => res).catch((error) => console.error(error));
 				}
 			})
 		}

@@ -11,6 +11,7 @@ import { ClientsComponent } from './components/clients/clients.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ClientFormComponent } from './components/clients/components/client-form/client-form.component';
 import { LoadingComponent } from '../../shared/loading/loading.component';
+import { NgxMaskDirective, NgxMaskPipe, provideNgxMask } from 'ngx-mask';
 
 @NgModule({
   declarations: [
@@ -28,6 +29,11 @@ import { LoadingComponent } from '../../shared/loading/loading.component';
     MaterialModule,
     FormsModule,
     ReactiveFormsModule,
+    NgxMaskDirective,
+    NgxMaskPipe
+  ],
+  providers: [
+    provideNgxMask()
   ]
 })
 export class DashboardModule { }

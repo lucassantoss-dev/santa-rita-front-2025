@@ -1,6 +1,6 @@
 .payment-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #56d337 0%, #178560 100%);
   padding: 20px;
   display: flex;
   align-items: center;
@@ -42,15 +42,170 @@
     .mat-step-label {
       font-weight: 500;
       font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 24px;
     }
 
-    mat-icon {
-      margin-right: 8px;
+    .mat-step-icon {
+      margin-right: 0 !important;
     }
   }
 
   .mat-stepper-horizontal-line {
     border-top-color: #e0e0e0;
+  }
+
+  // Cores para os estados do stepper
+  ::ng-deep .mat-stepper-horizontal {
+    .mat-step-header {
+      .mat-step-icon-not-touched {
+        background-color: #e0e0e0 !important;
+        color: #666 !important;
+      }
+
+      .mat-step-icon {
+        border: none !important;
+      }
+    }
+
+    .mat-stepper-horizontal-line {
+      border-top-color: #e0e0e0 !important;
+
+      &.mat-stepper-line-state-done {
+        border-top-color: #56d337 !important;
+      }
+    }
+  }
+
+  // Customização para o Angular Material stepper
+  ::ng-deep {
+    .mat-step-header {
+      display: flex;
+      align-items: center;
+      position: relative;
+
+      .mat-step-icon {
+        margin-right: 8px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #56d337 !important;
+        color: white !important;
+
+        &.mat-step-icon-selected {
+          background-color: #56d337 !important;
+          color: white !important;
+        }
+
+        &.mat-step-icon-state-done {
+          background-color: #56d337 !important;
+          color: white !important;
+        }
+
+        &.mat-step-icon-state-edit {
+          background-color: #56d337 !important;
+          color: white !important;
+        }
+      }      .mat-step-label {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 8px;
+        margin-left: 0;
+        flex: 1;
+        min-height: 24px;
+
+        mat-icon {
+          margin: 0;
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+          flex-shrink: 0;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 1;
+          vertical-align: middle;
+        }
+
+        span {
+          line-height: 1.4;
+          white-space: nowrap;
+          display: inline-flex;
+          align-items: center;
+          vertical-align: middle;
+          font-weight: 500;
+        }
+      }
+    }
+
+    .mat-stepper-horizontal {
+      .mat-step-header {
+        padding: 0 24px;
+        min-height: 72px;
+        display: flex;
+        align-items: center;
+
+        .mat-step-icon-content {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+      }
+    }
+
+    // Correção adicional para ícones do Material
+    .mat-icon {
+      vertical-align: middle;
+    }
+
+    .mat-step-icon .mat-icon {
+      vertical-align: middle;
+      line-height: 1;
+    }
+
+    // Alinhamento horizontal específico para labels
+    .mat-step-label {
+      display: inline-flex !important;
+      align-items: center !important;
+      flex-direction: row !important;
+
+      mat-icon, span {
+        display: inline-flex !important;
+        align-items: center !important;
+        vertical-align: middle !important;
+      }
+    }
+
+    // Cores personalizadas para todos os estados do stepper
+    .mat-step-icon {
+      background-color: #56d337 !important;
+      color: white !important;
+
+      .mat-icon {
+        color: white !important;
+      }
+    }
+
+    .mat-step-icon-not-touched {
+      background-color: #e0e0e0 !important;
+      color: #666 !important;
+
+      .mat-icon {
+        color: #666 !important;
+      }
+    }
+
+    .mat-step-header.cdk-keyboard-focused .mat-step-icon,
+    .mat-step-header.cdk-mouse-focused .mat-step-icon,
+    .mat-step-header:hover .mat-step-icon {
+      background-color: #4caf50 !important;
+      color: white !important;
+    }
   }
 }
 
@@ -98,8 +253,8 @@
     }
 
     &.selected {
-      border-color: #667eea;
-      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.25);
+      border-color: #56d337;
+      box-shadow: 0 8px 25px rgba(86, 211, 55, 0.25);
     }
 
     mat-card-content {
@@ -113,7 +268,7 @@
           font-size: 48px;
           width: 48px;
           height: 48px;
-          color: #667eea;
+          color: #56d337;
         }
       }
 
@@ -131,7 +286,7 @@
 
       .payment-time {
         background: #f0f4ff;
-        color: #667eea;
+        color: #56d337;
         padding: 4px 12px;
         border-radius: 20px;
         font-size: 0.85rem;
@@ -210,11 +365,11 @@
       }
 
       .copy-btn {
-        background: #667eea;
+        background: #56d337;
         color: white;
 
         &:hover {
-          background: #5a67d8;
+          background: #4caf50;
         }
       }
     }
@@ -316,7 +471,7 @@
 
   .continue-btn,
   .finish-btn {
-    background: #667eea;
+    background: #56d337;
     color: white;
     font-weight: 600;
     padding: 0 32px;
@@ -327,7 +482,7 @@
     }
 
     &:hover {
-      background: #5a67d8;
+      background: #4caf50;
     }
 
     &:disabled {
@@ -409,13 +564,38 @@
 
   .payment-stepper {
     .mat-stepper-header {
-      padding: 16px 8px;
+      padding: 16px 4px;
+    }
 
-      .mat-step-label {
-        font-size: 12px;
+    ::ng-deep {
+      .mat-step-header {
+        .mat-step-label {
+          font-size: 12px;
+          margin-left: 4px;
+          display: flex;
+          align-items: center;
+          gap: 6px;
 
-        span {
-          display: none;
+          span {
+            display: none;
+          }
+
+          mat-icon {
+            font-size: 16px;
+            width: 16px;
+            height: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            vertical-align: middle;
+          }
+        }
+
+        .mat-step-icon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
       }
     }
@@ -442,6 +622,44 @@
   .pix-info .pix-code-container .pix-code {
     font-size: 0.8rem;
     padding: 10px;
+  }
+
+  .payment-stepper {
+    ::ng-deep {
+      .mat-step-header {
+        padding: 12px 2px;
+        display: flex;
+        align-items: center;
+
+        .mat-step-label {
+          font-size: 11px;
+          margin-left: 2px;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+
+          mat-icon {
+            font-size: 14px;
+            width: 14px;
+            height: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            vertical-align: middle;
+          }
+        }
+
+        .mat-step-icon {
+          width: 20px;
+          height: 20px;
+          margin-right: 4px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+      }
+    }
   }
 }
 
@@ -475,7 +693,7 @@
 
 // Melhorias para acessibilidade
 .payment-option:focus {
-  outline: 2px solid #667eea;
+  outline: 2px solid #56d337;
   outline-offset: 2px;
 }
 
@@ -483,6 +701,6 @@
 .download-btn:focus,
 .continue-btn:focus,
 .finish-btn:focus {
-  outline: 2px solid #667eea;
+  outline: 2px solid #56d337;
   outline-offset: 2px;
 }

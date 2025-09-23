@@ -13,6 +13,7 @@ export class LayoutComponent implements OnInit {
   config: any;
   isMobileView = signal(false);
   openDropdownSignal = signal(false);
+  profileMenuOpen = signal(false);
   sidenavWidth = computed(() => this.collapsed() ? '65px' : '285px');
 
   user: any = null;
@@ -42,6 +43,39 @@ export class LayoutComponent implements OnInit {
         this.collapsed.set(true); // colapsado por padrão no mobile
       }
     });
+  }
+
+  getUserName(): string {
+    if (this.user?.user?.name) {
+      return this.user.user.name;
+    }
+    if (this.user?.name) {
+      return this.user.name;
+    }
+    // Tentar buscar do localStorage diretamente
+    const userData = this.localStorageService.getItem('userData');
+    if (userData?.name) {
+      return userData.name;
+    }
+    return 'Usuário';
+  }
+
+  getUserRole(): string {
+    if (this.user?.user?.roleName) {
+      return this.user.user.roleName;
+    }
+    if (this.user?.roleName) {
+      return this.user.roleName;
+    }
+    if (this.user?.role) {
+      return this.user.role;
+    }
+    // Tentar buscar do localStorage diretamente
+    const userData = this.localStorageService.getItem('userData');
+    if (userData?.role) {
+      return userData.role;
+    }
+    return 'Administrador';
   }
 
   handleExpandAndOpenDropdown() {
@@ -82,5 +116,13 @@ export class LayoutComponent implements OnInit {
       this.collapsed.set(true);
       drawer.close();
     }
+  }
+
+  onProfileMenuOpened() {
+    this.profileMenuOpen.set(true);
+  }
+
+  onProfileMenuClosed() {
+    this.profileMenuOpen.set(false);
   }
 }

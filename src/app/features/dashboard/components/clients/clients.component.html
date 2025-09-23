@@ -1,103 +1,254 @@
-<!-- <div *ngIf="!loading" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 90%;"> -->
-  <!-- <app-loading></app-loading> -->
-<!-- </div> -->
-
-<div class="table-container">
-  <h2 class="mt-2">Lista de Clientes</h2>
-  <mat-card>
-    <mat-card-content>
-      <div class="header mb-3" style="display: flex; justify-content: flex-end;">
-        <button mat-raised-button class="search-button" (click)="onCreate()">
-          <mat-icon>add</mat-icon> Novo
+<div class="clients-container">
+  <!-- Header da Página -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="title-section">
+        <h1 class="page-title">
+          <mat-icon>people</mat-icon>
+          Gestão de Clientes
+        </h1>
+        <p class="page-subtitle">Gerencie todos os clientes cadastrados no cemitério</p>
+      </div>
+      <div class="header-actions">
+        <button mat-raised-button color="primary" class="primary-action-btn" (click)="onCreate()">
+          <mat-icon>person_add</mat-icon>
+          Novo Cliente
         </button>
       </div>
-      <mat-divider></mat-divider>
-      <div class="row filter mb-2 mt-4 align-items-end">
-        <span style="font-size: 11px; font-weight: bold; color: #c3c3c3;">FILTROS</span>
-        <div class="col-md-6">
-          <div class="mb-2">
-            <input type="text" [(ngModel)]="nameFilter" id="UserName" class="form-control" placeholder="Nome" style="max-width: 100%; font-size: 0.95rem; padding: 0.3rem 0.5rem;">
+    </div>
+  </div>
+
+  <!-- Estatísticas Rápidas -->
+  <div class="stats-grid">
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <div class="stat-icon">
+            <mat-icon>people</mat-icon>
+          </div>
+          <div class="stat-info">
+            <h3>{{totalClients}}</h3>
+            <p>Total de Clientes</p>
           </div>
         </div>
-        <div class="col-md-3">
-          <div class="mb-2 d-flex flex-row gap-2 justify-content-end" style="gap: 4px; min-width: 160px;">
-            <button mat-raised-button class="search-button d-flex align-items-center" (click)="onSearch()" style="min-width: 70px; font-size: 0.95rem; padding: 0.3rem 0.5rem;">
-              <mat-icon style="margin-right: 3px; font-size: 18px;">search</mat-icon>
-              Pesquisar
-            </button>
-            <button mat-stroked-button class="d-flex align-items-center" (click)="clearFilters()" style="min-width: 60px; font-size: 0.95rem; padding: 0.3rem 0.5rem;">
-              <mat-icon style="margin-right: 3px; font-size: 18px;">clear</mat-icon>
-              Limpar
-            </button>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <div class="stat-icon">
+            <mat-icon>today</mat-icon>
           </div>
+          <div class="stat-info">
+            <h3>{{newClientsThisMonth}}</h3>
+            <p>Novos este Mês</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <div class="stat-icon">
+            <mat-icon>credit_card</mat-icon>
+          </div>
+          <div class="stat-info">
+            <h3>{{activeCards}}</h3>
+            <p>Carteirinhas Ativas</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <div class="stat-icon">
+            <mat-icon>description</mat-icon>
+          </div>
+          <div class="stat-info">
+            <h3>{{certificatesGenerated}}</h3>
+            <p>Certificados</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card> -->
+  </div>
+
+  <!-- Seção de Filtros -->
+  <mat-card class="filters-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>filter_list</mat-icon>
+        Filtros de Pesquisa
+      </mat-card-title>
+      <button mat-icon-button (click)="toggleFilters()" class="toggle-filters-btn">
+        <mat-icon>{{filtersExpanded ? 'expand_less' : 'expand_more'}}</mat-icon>
+      </button>
+    </mat-card-header>
+    <mat-card-content [@expandCollapse]="filtersExpanded ? 'expanded' : 'collapsed'">
+      <div class="filters-grid">
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Nome do Cliente</mat-label>
+          <input matInput [(ngModel)]="nameFilter" (input)="onFilterChange()" placeholder="Digite o nome...">
+          <mat-icon matSuffix>person</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Quadra</mat-label>
+          <input matInput [(ngModel)]="blockFilter" (input)="onFilterChange()" placeholder="Ex: A, B, C...">
+          <mat-icon matSuffix>grid_view</mat-icon>
+        </mat-form-field>
+      </div>
+
+      <div class="filters-actions">
+        <button mat-raised-button color="primary" (click)="onSearch()" class="filter-btn">
+          <mat-icon>search</mat-icon>
+          Pesquisar
+        </button>
+        <button mat-stroked-button (click)="clearFilters()" class="filter-btn">
+          <mat-icon>clear</mat-icon>
+          Limpar Filtros
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Resultados e Tabela -->
+  <mat-card class="results-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>list</mat-icon>
+        Resultados da Pesquisa
+      </mat-card-title>
+      <div class="results-info">
+        <span class="results-count">{{filteredCount}} de {{totalCount}} clientes</span>
+      </div>
+    </mat-card-header>
+    <mat-card-content>
+      <!-- Loading State -->
+      <div *ngIf="loading" class="loading-container">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p>Carregando clientes...</p>
+      </div>
+
+      <!-- Visualização em Tabela -->
+      <div *ngIf="!loading" class="table-view">
+        <div class="table-wrapper">
+          <table mat-table [dataSource]="pagedData" class="modern-table" matSort>
+            <!-- Coluna Avatar/Status -->
+            <ng-container matColumnDef="avatar">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header></th>
+              <td mat-cell *matCellDef="let element">
+                <div class="client-avatar">
+                  <mat-icon>person</mat-icon>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Coluna de Informações Principais -->
+            <ng-container matColumnDef="client-info">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Cliente</th>
+              <td mat-cell *matCellDef="let element">
+                <div class="client-info">
+                  <h4>{{ element.nome }}</h4>
+                  <p>{{ element.endereco }}</p>
+                  <div class="client-tags">
+                    <span class="status-tag" [ngClass]="getStatusClass(element.status)">
+                      {{ element.status || 'Ativo' }}
+                    </span>
+                  </div>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Coluna de Localização -->
+            <ng-container matColumnDef="location">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Localização</th>
+              <td mat-cell *matCellDef="let element">
+                <div class="location-info">
+                  <div class="location-item">
+                    <mat-icon>grid_view</mat-icon>
+                    <span>Quadra {{ element.quadra }}</span>
+                  </div>
+                  <div class="location-item">
+                    <mat-icon>numbers</mat-icon>
+                    <span>Nº {{ element.numero }}</span>
+                  </div>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Coluna de Tipo -->
+            <ng-container matColumnDef="type">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Tipo</th>
+              <td mat-cell *matCellDef="let element">
+                <div class="type-badge" [ngClass]="getTypeClass(element.tipo)">
+                  <mat-icon>{{ getTypeIcon(element.tipo) }}</mat-icon>
+                  <span>{{ element.tipo }}</span>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Coluna de Ações -->
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Ações</th>
+              <td mat-cell *matCellDef="let element">
+                <div class="actions-container">
+                  <button mat-icon-button class="action-btn edit-btn"
+                          (click)="onEdit(element._id)"
+                          matTooltip="Editar Cliente">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button mat-icon-button class="action-btn card-btn"
+                          (click)="downloadCard(element._id)"
+                          matTooltip="Gerar Carteirinha">
+                    <mat-icon>badge</mat-icon>
+                  </button>
+                  <button mat-icon-button class="action-btn certificate-btn"
+                          (click)="downloadCertificate(element._id)"
+                          matTooltip="Gerar Certificado">
+                    <mat-icon>description</mat-icon>
+                  </button>
+                  <button mat-icon-button class="action-btn delete-btn"
+                          (click)="onDelete(element._id)"
+                          matTooltip="Excluir Cliente">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+                class="table-row"></tr>
+          </table>
         </div>
       </div>
-      <table mat-table [dataSource]="pagedData" class="mat-elevation-z8"
-        *ngIf="dataSource && pagedData.length > 0">
-        <!-- Coluna de Nome -->
-        <ng-container matColumnDef="block">
-          <th mat-header-cell *matHeaderCellDef> Quadra </th>
-          <td mat-cell *matCellDef="let element"> {{ element.block }} </td>
-        </ng-container>
 
-        <!-- Coluna de Descrição -->
-        <ng-container matColumnDef="number">
-          <th mat-header-cell *matHeaderCellDef> Número </th>
-          <td mat-cell *matCellDef="let element"> {{ element.number }} </td>
-        </ng-container>
-        <ng-container matColumnDef="type">
-          <th mat-header-cell *matHeaderCellDef> Tipo </th>
-          <td mat-cell *matCellDef="let element"> {{ element.type }} </td>
-        </ng-container>
+      <!-- Empty State -->
+      <div *ngIf="!loading && pagedData?.length === 0" class="empty-state">
+        <mat-icon>people_outline</mat-icon>
+        <h3>Nenhum cliente encontrado</h3>
+        <p>Não há clientes que correspondam aos filtros aplicados.</p>
+        <button mat-raised-button color="primary" (click)="clearFilters()">
+          <mat-icon>clear</mat-icon>
+          Limpar Filtros
+        </button>
+      </div>
 
-        <ng-container matColumnDef="name">
-          <th mat-header-cell *matHeaderCellDef> Nome </th>
-          <td mat-cell *matCellDef="let element"> {{ element.name }} </td>
-        </ng-container>
-
-        <ng-container matColumnDef="address">
-          <th mat-header-cell *matHeaderCellDef> Endereço </th>
-          <td mat-cell *matCellDef="let element"> {{ element.address }} </td>
-        </ng-container>
-
-        <!-- Coluna de Ações -->
-        <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef> Ações </th>
-          <td mat-cell *matCellDef="let element">
-            <button mat-icon-button class="custom-button" (click)="onEdit(element._id)" matTooltip="Edição de Cliente">
-              <mat-icon>edit</mat-icon>
-            </button>
-            <button mat-icon-button color="warn" (click)="onDelete(element._id)" matTooltip="Deleção de Cliente">
-              <mat-icon>delete</mat-icon>
-            </button>
-            <button mat-icon-button color="primary" (click)="downloadCard(element._id)" matTooltip="Gerar Carteira">
-              <mat-icon>badge</mat-icon>
-            </button>
-            <button mat-icon-button color="secondary" (click)="downloadCertificate(element._id)" matTooltip="Certificado">
-              <mat-icon>contact_mail</mat-icon>
-            </button>
-          </td>
-        </ng-container>
-
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-      </table>
-
-      <div *ngIf="dataSource && dataSource.filteredData && dataSource.filteredData.length > 0" style="margin-top: 16px;">
+      <!-- Paginação -->
+      <div *ngIf="!loading && pagedData && pagedData.length > 0" class="pagination-container">
         <mat-paginator
-          [length]="dataSource.filteredData.length"
+          [length]="filteredCount"
           [pageSize]="pageSize"
           [pageIndex]="pageIndex"
           [pageSizeOptions]="pageSizeOptions"
+          [showFirstLastButtons]="true"
           (page)="onPageChange($event)">
         </mat-paginator>
-      </div>
-      <div
-        *ngIf="pagedData?.length === 0"
-        class="alert alert-info mt-3"
-        style="text-align: center"
-      >
-        Nenhum item encontrado.
       </div>
     </mat-card-content>
   </mat-card>
