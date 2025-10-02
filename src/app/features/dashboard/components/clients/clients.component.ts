@@ -6,6 +6,10 @@ import { DocumentGeneratorService } from './document-generator.service';
 import { Router } from '@angular/router';
 import { ClientService } from '../../../../core/client.service';
 import { animate, state, style, transition, trigger } from '@angular/animations';
+import { PopupService } from '../../../../shared/popup/popup.service';
+import { MatDialog } from '@angular/material/dialog';
+import { ClientPlanAssociationComponent, ClientPlanAssociationResult } from './components/client-plan-association/client-plan-association.component';
+import { PaymentService } from '../../../../core/payment.service';
 
 interface ClientData {
   _id: string;
@@ -119,7 +123,10 @@ export class ClientsComponent implements OnInit {
     private http: HttpClient,
     private docGen: DocumentGeneratorService,
     private router: Router,
-    private clientService: ClientService
+    private clientService: ClientService,
+    private popupService: PopupService,
+    private dialog: MatDialog,
+    private paymentService: PaymentService
   ) { }
 
   async ngOnInit(): Promise<void> {
@@ -150,7 +157,6 @@ export class ClientsComponent implements OnInit {
       // Para demonstração, usar dados mockados
       // Em produção, descomente o código abaixo para usar a API
 
-      /*
       this.clientService.getAllClients().subscribe({
         next: (response) => {
           if (response && response.data) {
@@ -175,10 +181,9 @@ export class ClientsComponent implements OnInit {
           this.loading = false;
         }
       });
-      */
 
       // Usar dados mockados para demonstração
-      this.loadMockData();
+      // this.loadMockData();
 
     } catch (error) {
       this.loadMockData();
@@ -187,13 +192,8 @@ export class ClientsComponent implements OnInit {
 
   private setupDataSource(): void {
     if (this.dataSource) {
-      // Configurar filtro personalizado
       this.dataSource.filterPredicate = this.createFilter();
-
-      // Calcular estatísticas
       this.updateStatistics();
-
-      // Aplicar paginação inicial
       this.onFilterChange();
     }
   }
@@ -232,7 +232,6 @@ export class ClientsComponent implements OnInit {
     }
   }
 
-  // Métodos de filtro e busca
   onFilterChange(): void {
     if (this.dataSource) {
       const filters = {
@@ -265,7 +264,6 @@ export class ClientsComponent implements OnInit {
     this.filtersExpanded = !this.filtersExpanded;
   }
 
-  // Métodos de paginação
   onPageChange(event: PageEvent): void {
     this.pageIndex = event.pageIndex;
     this.pageSize = event.pageSize;
@@ -281,9 +279,33 @@ export class ClientsComponent implements OnInit {
     }
   }
 
-  // Métodos de ação
   onCreate(): void {
     this.router.navigate(['/dashboard/client-create']);
+  }
+
+  openClientPlanAssociation(): void {
+    const dialogRef = this.dialog.open(ClientPlanAssociationComponent, {
+      width: '600px',
+      maxHeight: '90vh',
+      disableClose: false,
+      data: {}
+    });
+
+    dialogRef.afterClosed().subscribe((result: ClientPlanAssociationResult) => {
+      if (result) {
+        console.log('Associação criada:', result);
+        this.paymentService.setClientPlan(result.clientId, result.planId).subscribe({
+          next: () => {
+            this.popupService.showSuccessMessage(
+              `Cliente ${result.clientName} foi associado ao plano ${result.planName} com sucesso!`
+            );
+          },
+          error: (error) => {
+            this.popupService.showErrorMessage('Erro ao associar cliente ao plano. Tente novamente.');
+          }
+        });
+      }
+    });
   }
 
   onEdit(id: string): void {
@@ -291,10 +313,27 @@ export class ClientsComponent implements OnInit {
   }
 
   onDelete(id: string): void {
-    if (confirm('Tem certeza que deseja excluir este cliente?')) {
-      // Implementar lógica de exclusão
-      console.log('Deletando cliente:', id);
-      // this.clientService.delete(id).then(() => this.getClients());
+    const cliente = this.pagedData.find(c => c._id === id);
+    const clienteName = cliente ? cliente.nome : 'Este cliente';
+
+    this.popupService.confirmDelete(clienteName, () => {
+      this.deleteClient(id);
+    });
+  }
+
+  private deleteClient(id: string): void {
+    try {
+      // Remover do array mockClients
+      this.mockClients = this.mockClients.filter((c: ClientData) => c._id !== id);
+
+      // Atualizar o dataSource
+      this.dataSource.data = this.mockClients;
+      this.applyPagination();
+
+      this.popupService.showSuccessMessage('Cliente excluído com sucesso!');
+    } catch (error) {
+      this.popupService.showErrorMessage('Erro ao excluir cliente. Tente novamente.');
+      console.error('Erro ao excluir cliente:', error);
     }
   }
 
@@ -303,8 +342,12 @@ export class ClientsComponent implements OnInit {
       const cliente = this.pagedData.find(c => c._id === clienteId);
       if (cliente) {
         this.docGen.gerarCarteirinha(cliente);
+        this.popupService.showSuccessMessage('Carteirinha gerada com sucesso!');
+      } else {
+        this.popupService.showWarningMessage('Cliente não encontrado.');
       }
     } catch (error) {
+      this.popupService.showErrorMessage('Erro ao gerar carteirinha. Tente novamente.');
       console.error('Erro ao gerar carteirinha:', error);
     }
   }

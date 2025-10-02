@@ -1,0 +1,132 @@
+<div class="quick-payment-modal">
+  <div class="modal-header">
+    <h2 mat-dialog-title>
+      <mat-icon>flash_on</mat-icon>
+      Criação Rápida de Pagamento
+    </h2>
+    <button mat-icon-button mat-dialog-close class="close-button">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div mat-dialog-content class="modal-content">
+    <form [formGroup]="quickPaymentForm" (ngSubmit)="onSubmit()" class="quick-payment-form">
+
+      <!-- Seleção do Cliente -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Cliente *</mat-label>
+        <mat-select formControlName="clientId">
+          <mat-option value="">Selecione um cliente</mat-option>
+          <mat-option *ngFor="let client of clients" [value]="client._id">
+            {{ getClientDisplay(client) }}
+          </mat-option>
+        </mat-select>
+        <mat-icon matSuffix>person</mat-icon>
+        <mat-error *ngIf="isFieldInvalid('clientId')">
+          {{ getFieldError('clientId') }}
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Linha com Valor e Dia do Vencimento -->
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Valor *</mat-label>
+          <input matInput type="number" formControlName="valor"
+                 placeholder="0,00" step="0.01" min="0">
+          <span matTextPrefix>R$ </span>
+          <mat-icon matSuffix>attach_money</mat-icon>
+          <mat-error *ngIf="isFieldInvalid('valor')">
+            {{ getFieldError('valor') }}
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Dia do Vencimento *</mat-label>
+          <input matInput type="number" formControlName="diaVencimento"
+                 min="1" max="31" step="1">
+          <mat-icon matSuffix>calendar_today</mat-icon>
+          <mat-hint>Dia do mês (1-31)</mat-hint>
+          <mat-error *ngIf="isFieldInvalid('diaVencimento')">
+            {{ getFieldError('diaVencimento') }}
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <!-- Descrição -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Descrição *</mat-label>
+        <textarea matInput formControlName="descricao" rows="3"
+                  placeholder="Ex: Mensalidade do jazigo"></textarea>
+        <mat-icon matSuffix>description</mat-icon>
+        <mat-error *ngIf="isFieldInvalid('descricao')">
+          {{ getFieldError('descricao') }}
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Preview do Cliente Selecionado -->
+      <div class="client-preview" *ngIf="quickPaymentForm.get('clientId')?.value">
+        <div class="preview-card">
+          <div class="preview-title">
+            <mat-icon>preview</mat-icon>
+            Informações do Cliente
+          </div>
+          <ng-container *ngFor="let client of clients">
+            <div *ngIf="client._id === quickPaymentForm.get('clientId')?.value" class="client-details">
+              <div class="detail-row">
+                <span class="label">Nome:</span>
+                <span class="value">{{ client.nome }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Localização:</span>
+                <span class="value">Quadra {{ client.quadra }}, Número {{ client.numero }}</span>
+              </div>
+              <div class="detail-row" *ngIf="client.contato">
+                <span class="label">Contato:</span>
+                <span class="value">{{ client.contato }}</span>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+
+      <!-- Resumo do Pagamento -->
+      <div class="payment-preview" *ngIf="quickPaymentForm.get('valor')?.value > 0">
+        <div class="preview-card">
+          <div class="preview-title">
+            <mat-icon>receipt</mat-icon>
+            Resumo do Pagamento
+          </div>
+          <div class="preview-content">
+            <div class="preview-row">
+              <span class="label">Valor:</span>
+              <span class="value amount">{{ quickPaymentForm.get('valor')?.value | currency:'BRL' }}</span>
+            </div>
+            <div class="preview-row" *ngIf="quickPaymentForm.get('diaVencimento')?.value">
+              <span class="label">Vencimento:</span>
+              <span class="value">Todo dia {{ quickPaymentForm.get('diaVencimento')?.value }}</span>
+            </div>
+            <div class="preview-row" *ngIf="quickPaymentForm.get('descricao')?.value">
+              <span class="label">Descrição:</span>
+              <span class="value">{{ quickPaymentForm.get('descricao')?.value }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </form>
+  </div>
+
+  <div mat-dialog-actions class="modal-actions">
+    <button type="button" mat-button (click)="onCancel()" [disabled]="isLoading">
+      <mat-icon>cancel</mat-icon>
+      Cancelar
+    </button>
+
+    <button type="submit" mat-raised-button color="primary"
+            (click)="onSubmit()" [disabled]="isLoading || quickPaymentForm.invalid">
+      <mat-spinner diameter="20" *ngIf="isLoading"></mat-spinner>
+      <mat-icon *ngIf="!isLoading">flash_on</mat-icon>
+      {{ isLoading ? 'Criando...' : 'Criar Pagamento' }}
+    </button>
+  </div>
+</div>

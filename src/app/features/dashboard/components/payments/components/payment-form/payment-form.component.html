@@ -1,0 +1,159 @@
+<div class="payment-form-container">
+  <form [formGroup]="paymentForm" (ngSubmit)="onSubmit()" class="payment-form">
+
+    <!-- Seleção do Cliente -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Cliente *</mat-label>
+      <mat-select formControlName="clientId" (selectionChange)="onClientChange()">
+        <mat-option *ngFor="let client of clients" [value]="client._id">
+          {{ getClientDisplay(client) }}
+        </mat-option>
+      </mat-select>
+      <mat-error *ngIf="isFieldInvalid('clientId')">
+        {{ getFieldError('clientId') }}
+      </mat-error>
+    </mat-form-field>
+
+    <!-- Tipo de Pagamento -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Tipo de Pagamento *</mat-label>
+      <mat-select formControlName="paymentType">
+        <mat-option *ngFor="let type of paymentTypes" [value]="type.value">
+          {{ type.label }}
+        </mat-option>
+      </mat-select>
+      <mat-error *ngIf="isFieldInvalid('paymentType')">
+        {{ getFieldError('paymentType') }}
+      </mat-error>
+    </mat-form-field>
+
+    <!-- Plano de Pagamento (apenas se for tipo plano) -->
+    <mat-form-field appearance="outline" class="full-width"
+                    *ngIf="paymentForm.get('paymentType')?.value === 'plano'">
+      <mat-label>Plano de Pagamento *</mat-label>
+      <mat-select formControlName="planType" (selectionChange)="onPlanChange()">
+        <mat-option *ngFor="let plan of paymentPlans" [value]="plan.name">
+          {{ plan.name }} - {{ plan.amount | currency:'BRL' }}
+        </mat-option>
+      </mat-select>
+      <mat-error *ngIf="isFieldInvalid('planType')">
+        {{ getFieldError('planType') }}
+      </mat-error>
+    </mat-form-field>
+
+    <!-- Descrição -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Descrição *</mat-label>
+      <textarea matInput formControlName="description" rows="3"
+                placeholder="Descreva o pagamento..."></textarea>
+      <mat-error *ngIf="isFieldInvalid('description')">
+        {{ getFieldError('description') }}
+      </mat-error>
+    </mat-form-field>
+
+    <!-- Linha com Valor e Data -->
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="half-width">
+        <mat-label>Valor *</mat-label>
+        <input matInput type="number" formControlName="valor"
+               placeholder="0,00" step="0.01" min="0">
+        <span matTextPrefix>R$ </span>
+        <mat-error *ngIf="isFieldInvalid('valor')">
+          {{ getFieldError('valor') }}
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="half-width">
+        <mat-label>Data de Vencimento *</mat-label>
+        <input matInput type="date" formControlName="vencimento">
+        <mat-error *ngIf="isFieldInvalid('vencimento')">
+          {{ getFieldError('vencimento') }}
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <!-- Parcelamento (apenas se for tipo plano) -->
+    <div class="form-row" *ngIf="paymentForm.get('paymentType')?.value === 'plano'">
+      <mat-form-field appearance="outline" class="half-width">
+        <mat-label>Total de Parcelas *</mat-label>
+        <input matInput type="number" formControlName="installments"
+               min="1" step="1">
+        <mat-error *ngIf="isFieldInvalid('installments')">
+          {{ getFieldError('installments') }}
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="half-width">
+        <mat-label>Parcela Atual</mat-label>
+        <input matInput type="number" formControlName="currentInstallment"
+               min="1" step="1">
+      </mat-form-field>
+    </div>
+
+    <!-- Informações do Cliente Selecionado -->
+    <div class="client-info-card" *ngIf="paymentForm.get('clientId')?.value">
+      <h4>Informações do Cliente</h4>
+      <ng-container *ngFor="let client of clients">
+        <div *ngIf="client._id === paymentForm.get('clientId')?.value" class="client-details">
+          <div class="detail-row">
+            <span class="label">Nome:</span>
+            <span class="value">{{ client.nome }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Localização:</span>
+            <span class="value">Quadra {{ client.quadra }}, Número {{ client.numero }}</span>
+          </div>
+          <div class="detail-row" *ngIf="client.complemento">
+            <span class="label">Complemento:</span>
+            <span class="value">{{ client.complemento }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Contato:</span>
+            <span class="value">{{ client.contato }}</span>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+
+    <!-- Resumo do Pagamento -->
+    <div class="payment-summary" *ngIf="paymentForm.get('valor')?.value > 0">
+      <h4>Resumo do Pagamento</h4>
+      <div class="summary-content">
+        <div class="summary-row">
+          <span class="label">Tipo:</span>
+          <span class="value">
+            {{ paymentForm.get('paymentType')?.value === 'plano' ? 'Plano de Pagamento' : 'Pagamento Avulso' }}
+          </span>
+        </div>
+        <div class="summary-row" *ngIf="paymentForm.get('planType')?.value">
+          <span class="label">Plano:</span>
+          <span class="value">{{ paymentForm.get('planType')?.value }}</span>
+        </div>
+        <div class="summary-row">
+          <span class="label">Valor:</span>
+          <span class="value valor">{{ paymentForm.get('valor')?.value | currency:'BRL' }}</span>
+        </div>
+        <div class="summary-row" *ngIf="paymentForm.get('installments')?.value > 1">
+          <span class="label">Parcelamento:</span>
+          <span class="value">
+            {{ paymentForm.get('currentInstallment')?.value }}/{{ paymentForm.get('installments')?.value }} parcelas
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botões -->
+    <div class="form-actions">
+      <button type="button" mat-button (click)="onCancel()" [disabled]="isLoading">
+        Cancelar
+      </button>
+
+      <button type="submit" mat-raised-button color="primary" [disabled]="isLoading">
+        <mat-spinner diameter="20" *ngIf="isLoading"></mat-spinner>
+        <span *ngIf="!isLoading">{{ payment ? 'Salvar Alterações' : 'Criar Pagamento' }}</span>
+        <span *ngIf="isLoading">Salvando...</span>
+      </button>
+    </div>
+
+  </form>
+</div>

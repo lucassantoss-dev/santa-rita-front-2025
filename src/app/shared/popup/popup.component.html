@@ -1,0 +1,54 @@
+<div [class]="overlayClasses"
+     *ngIf="isVisible"
+     (click)="onBackdropClick($event)"
+     [@fadeInOut]>
+
+  <div [class]="popupClasses"
+       (click)="stopPropagation($event)"
+       (mouseenter)="onMouseEnter()"
+       (mouseleave)="onMouseLeave()"
+       [@slideInOut]="position === 'center'"
+       [@slideInOutTopRight]="position === 'top-right' || position === 'top-center'">
+
+    <!-- Header -->
+    <div class="popup-header" *ngIf="title || showCloseButton">
+      <div class="popup-icon-title">
+        <mat-icon class="popup-icon">{{ popupIcon }}</mat-icon>
+        <h3 class="popup-title" *ngIf="title">{{ title }}</h3>
+      </div>
+
+      <button *ngIf="showCloseButton"
+              class="close-button"
+              mat-icon-button
+              (click)="close()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <!-- Content -->
+    <div class="popup-content">
+      <div class="popup-message-container" *ngIf="message">
+        <mat-icon class="popup-inline-icon" *ngIf="!title && !showCloseButton">{{ popupIcon }}</mat-icon>
+        <p class="popup-message">{{ message }}</p>
+      </div>
+      <ng-content></ng-content>
+    </div>
+
+    <!-- Actions -->
+    <div class="popup-actions" *ngIf="showConfirmButton || showCancelButton">
+      <button *ngIf="showCancelButton"
+              mat-stroked-button
+              class="cancel-button"
+              (click)="cancel()">
+        {{ cancelText }}
+      </button>
+
+      <button *ngIf="showConfirmButton"
+              mat-raised-button
+              class="confirm-button"
+              (click)="confirm()">
+        {{ confirmText }}
+      </button>
+    </div>
+  </div>
+</div>

@@ -3,6 +3,9 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Location } from '@angular/common';
 import { ClientService } from '../../../../../../core/client.service';
+import { PopupService } from '../../../../../../shared/popup/popup.service';
+import { ActivityService } from '../../../../../../core/activity.service';
+import { DashboardService } from '../../../../../../core/dashboard.service';
 
 @Component({
   selector: 'app-client-form',
@@ -53,7 +56,10 @@ export class ClientFormComponent implements OnInit {
     private fb: FormBuilder,
     private http: HttpClient,
     private location: Location,
-    private clientService: ClientService
+    private clientService: ClientService,
+    private popupService: PopupService,
+    private activityService: ActivityService,
+    private dashboardService: DashboardService
   ) {}
 
   ngOnInit(): void {
@@ -87,13 +93,26 @@ export class ClientFormComponent implements OnInit {
 
   onSubmit() {
     if (this.clientForm.valid) {
-      this.clientService.createClient(this.clientForm.value).subscribe({
-        next: () => {
-          alert('Cliente cadastrado com sucesso!');
+      const payload = {
+        ...this.clientForm.value,
+        situacao: "Ativo"
+      }
+      this.clientService.createClient(payload).subscribe({
+        next: (response) => {
+          // Adicionar atividade ao dashboard usando o novo ActivityService
+          this.activityService.addClientActivity('create', payload.nome, response._id);
+
+          // Atualizar estatísticas incrementando o total de clientes
+          this.dashboardService.updateStats({
+            totalClients: undefined, // Será recalculado automaticamente
+            newClientsThisMonth: undefined // Será recalculado automaticamente
+          });
+
+          this.popupService.showSuccessMessage('Cliente cadastrado com sucesso!');
           this.location.back();
         },
         error: (error: Error) => {
-          alert('Erro ao cadastrar cliente. Tente novamente. ' + error.message);
+          this.popupService.showErrorMessage('Erro ao cadastrar cliente. Tente novamente. ' + error.message);
         }
       });
     } else {
@@ -109,7 +128,7 @@ export class ClientFormComponent implements OnInit {
     this.clientForm = this.fb.group({
       quadra: ['', Validators.required],
       complemento: ['', Validators.required],
-      numero: ['', [Validators.required, Validators.pattern('^[0-9]+$')]],
+      numero: [null, [Validators.required, Validators.pattern('^[0-9]+$')]],
       tipo: ['', Validators.required],
       nome: ['', Validators.required],
       cpf: ['', Validators.required],

@@ -8,10 +8,16 @@ import { LayoutComponent } from './components/layout/layout.component';
 import { MaterialModule } from '../../material-module';
 import { SidenavComponent } from './components/layout/sidenav/sidenav.component';
 import { ClientsComponent } from './components/clients/clients.component';
+import { PaymentsComponent } from './components/payments/payments.component';
+import { PaymentFormComponent } from './components/payments/components/payment-form/payment-form.component';
+import { QuickPaymentComponent } from './components/payments/components/quick-payment/quick-payment.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ClientFormComponent } from './components/clients/components/client-form/client-form.component';
 import { LoadingComponent } from '../../shared/loading/loading.component';
 import { NgxMaskDirective, NgxMaskPipe, provideNgxMask } from 'ngx-mask';
+import { ProfileComponent } from './components/profile/profile.component';
+import { ConfigurationsComponent } from './components/configurations/configurations.component';
+import { ClientPlanAssociationComponent } from './components/clients/components/client-plan-association/client-plan-association.component';
 
 @NgModule({
   declarations: [
@@ -20,8 +26,14 @@ import { NgxMaskDirective, NgxMaskPipe, provideNgxMask } from 'ngx-mask';
     LayoutComponent,
     SidenavComponent,
     ClientsComponent,
+    PaymentsComponent,
+    PaymentFormComponent,
+    QuickPaymentComponent,
     ClientFormComponent,
-    LoadingComponent
+    LoadingComponent,
+    ConfigurationsComponent,
+    ProfileComponent,
+    ClientPlanAssociationComponent
   ],
   imports: [
     CommonModule,

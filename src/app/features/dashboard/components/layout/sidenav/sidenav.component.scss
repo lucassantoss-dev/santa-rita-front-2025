@@ -151,3 +151,33 @@
     margin-top: 60px;
   }
 }
+
+// Estilos para o divider do menu
+.menu-divider {
+  margin: 12px 16px;
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+.menu-divider-collapsed {
+  height: 1px;
+  background: rgba(0, 0, 0, 0.12);
+  margin: 12px 8px;
+}
+
+// Estilo especial para o item de logout
+.logout-item {
+  color: #f44336 !important;
+
+  mat-icon {
+    color: #f44336 !important;
+  }
+
+  &:hover {
+    background-color: rgba(244, 67, 54, 0.08) !important;
+  }
+
+  &.selected-menu-item {
+    border-left-color: #f44336 !important;
+    background: rgba(244, 67, 54, 0.1) !important;
+  }
+}

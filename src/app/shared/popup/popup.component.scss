@@ -1,0 +1,465 @@
+// Variáveis do tema (verde suave profissional)
+:host {
+  --primary-green: #28a745;
+  --secondary-green: #20c997;
+  --success-color: #28a745;
+  --warning-color: #ffc107;
+  --error-color: #dc3545;
+  --info-color: #17a2b8;
+  --background-light: #f8f9fa;
+  --text-primary: #2c3e50;
+  --text-secondary: #6c757d;
+  --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  --card-shadow-hover: 0 4px 20px rgba(0, 0, 0, 0.15);
+  --border-radius: 12px;
+}
+
+// Overlay
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  box-sizing: border-box;
+
+  // Posicionamentos
+  &.overlay-position-center {
+    align-items: center;
+    justify-content: center;
+  }
+
+  &.overlay-position-top-right {
+    background: transparent;
+    backdrop-filter: none;
+    align-items: flex-start;
+    justify-content: flex-end;
+    padding: 20px;
+    pointer-events: none;
+
+    .popup-container {
+      pointer-events: all;
+    }
+  }
+
+  &.overlay-position-top-center {
+    background: transparent;
+    backdrop-filter: none;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 20px;
+    pointer-events: none;
+
+    .popup-container {
+      pointer-events: all;
+    }
+  }
+}
+
+// Container Principal
+.popup-container {
+  background: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--card-shadow-hover);
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+
+  // Tamanhos
+  &.popup-small {
+    width: 300px;
+    min-height: auto;
+  }
+
+  &.popup-medium {
+    width: 420px;
+    min-height: auto;
+  }
+
+  &.popup-large {
+    width: 640px;
+    min-height: auto;
+  }
+
+  // Posicionamentos específicos
+  &.popup-position-top-right,
+  &.popup-position-top-center {
+    margin-top: 20px;
+    transform: none;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
+
+    &.popup-small {
+      width: 340px;
+    }
+
+    .popup-header {
+      padding: 14px 18px 10px;
+
+      .popup-title {
+        font-size: 15px;
+        font-weight: 600;
+      }
+
+      .popup-icon {
+        font-size: 22px;
+        width: 22px;
+        height: 22px;
+      }
+    }
+
+    .popup-content {
+      padding: 10px 18px 14px;
+
+      .popup-message {
+        font-size: 14px;
+        line-height: 1.4;
+      }
+
+      .popup-inline-icon {
+        font-size: 22px;
+        width: 22px;
+        height: 22px;
+      }
+    }
+
+    // Não mostrar ações em toast mode
+    .popup-actions {
+      display: none;
+    }
+
+    // Barra de progresso para indicar auto-close
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 4px;
+      width: 100%;
+      border-radius: 0 0 8px 8px;
+      animation: progress-bar 3s linear forwards;
+    }
+
+    &.popup-success::after {
+      background: var(--success-color);
+      animation: progress-bar 3s linear forwards;
+    }
+
+    &.popup-error::after {
+      background: var(--error-color);
+      animation: progress-bar 4s linear forwards;
+    }
+
+    &.popup-warning::after {
+      background: var(--warning-color);
+      animation: progress-bar 4s linear forwards;
+    }
+
+    &.popup-info::after {
+      background: var(--info-color);
+      animation: progress-bar 4s linear forwards;
+    }
+
+    // Pausar animação no hover
+    &:hover::after {
+      animation-play-state: paused;
+    }
+  }
+
+  // Tipos
+  &.popup-success {
+    border-top: 4px solid var(--success-color);
+
+    .popup-icon {
+      color: var(--success-color);
+    }
+
+    .confirm-button {
+      background: var(--success-color) !important;
+      color: white !important;
+    }
+  }
+
+  &.popup-warning {
+    border-top: 4px solid var(--warning-color);
+
+    .popup-icon {
+      color: var(--warning-color);
+    }
+
+    .confirm-button {
+      background: var(--warning-color) !important;
+      color: white !important;
+    }
+  }
+
+  &.popup-error {
+    border-top: 4px solid var(--error-color);
+
+    .popup-icon {
+      color: var(--error-color);
+    }
+
+    .confirm-button {
+      background: var(--error-color) !important;
+      color: white !important;
+    }
+  }
+
+  &.popup-info {
+    border-top: 4px solid var(--info-color);
+
+    .popup-icon {
+      color: var(--info-color);
+    }
+
+    .confirm-button {
+      background: var(--info-color) !important;
+      color: white !important;
+    }
+  }
+
+  &.popup-confirm {
+    border-top: 4px solid var(--primary-green);
+
+    .popup-icon {
+      color: var(--primary-green);
+    }
+
+    .confirm-button {
+      background: var(--primary-green) !important;
+      color: white !important;
+    }
+  }
+}
+
+// Header
+.popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 8px;
+  border-bottom: 1px solid #e9ecef;
+
+  .popup-icon-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .popup-icon {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+  }
+
+  .popup-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .close-button {
+    color: var(--text-secondary);
+    width: 32px;
+    height: 32px;
+
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.1);
+      color: var(--text-primary);
+    }
+  }
+}
+
+// Content
+.popup-content {
+  padding: 16px 20px;
+  flex: 1;
+  overflow-y: auto;
+  min-height: fit-content;
+
+  .popup-message-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-align: left;
+
+    .popup-inline-icon {
+      font-size: 22px;
+      width: 22px;
+      height: 22px;
+      flex-shrink: 0;
+    }
+  }
+
+  .popup-message {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.4;
+    color: var(--text-primary);
+    flex: 1;
+  }
+
+  // Quando há header, centralizar a mensagem
+  .popup-container:has(.popup-header) & {
+    .popup-message-container {
+      justify-content: center;
+      text-align: center;
+
+      .popup-message {
+        text-align: center;
+      }
+    }
+  }
+}
+
+// Actions
+.popup-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  padding: 12px 20px 16px;
+  border-top: 1px solid #e9ecef;
+
+  .cancel-button {
+    color: var(--text-secondary);
+    border-color: #dee2e6;
+    min-width: 100px;
+
+    &:hover {
+      background: #f8f9fa;
+      border-color: var(--text-secondary);
+    }
+  }
+
+  .confirm-button {
+    min-width: 100px;
+    font-weight: 500;
+
+    &:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .popup-container {
+    &.popup-small,
+    &.popup-medium,
+    &.popup-large {
+      width: calc(100vw - 40px);
+      max-width: 400px;
+    }
+  }
+
+  .popup-header {
+    padding: 16px 20px 12px;
+
+    .popup-title {
+      font-size: 16px;
+    }
+
+    .popup-icon {
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+    }
+  }
+
+  .popup-content {
+    padding: 16px 20px;
+  }
+
+  .popup-actions {
+    padding: 12px 20px 20px;
+    flex-direction: column-reverse;
+
+    button {
+      width: 100%;
+    }
+  }
+}
+
+// Animações
+@keyframes fadeInOut {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInOut {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes progress-bar {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+// Estados de loading
+.popup-container.loading {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+// Efeitos glassmorphism
+.popup-container {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+// Scroll customizado para o content
+.popup-content {
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+
+    &:hover {
+      background: #a8a8a8;
+    }
+  }
+}
