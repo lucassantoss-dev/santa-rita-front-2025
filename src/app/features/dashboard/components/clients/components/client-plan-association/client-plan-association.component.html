@@ -1,0 +1,187 @@
+<div class="association-modal-container">
+  <!-- Header do Modal -->
+  <div class="modal-header">
+    <h2 mat-dialog-title>
+      <mat-icon>link</mat-icon>
+      Associar Cliente a Plano
+    </h2>
+    <button mat-icon-button mat-dialog-close class="close-button" matTooltip="Fechar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Conteúdo do Modal -->
+  <div mat-dialog-content class="modal-content">
+    <form [formGroup]="associationForm" class="association-form">
+      <!-- Seleção de Cliente -->
+      <div class="form-section">
+        <h3 class="section-title">
+          <mat-icon>person</mat-icon>
+          Selecionar Cliente
+        </h3>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Cliente</mat-label>
+          <mat-select formControlName="clientId" placeholder="Selecione um cliente">
+            <mat-option value="">
+              <em>Selecione um cliente</em>
+            </mat-option>
+            <mat-option *ngFor="let client of clients" [value]="client._id">
+              {{ getClientDisplay(client) }}
+            </mat-option>
+          </mat-select>
+          <mat-icon matSuffix>people</mat-icon>
+          <mat-error *ngIf="clientId?.hasError('required') && clientId?.touched">
+            Selecione um cliente
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Preview do Cliente Selecionado -->
+        <div *ngIf="selectedClient" class="client-preview">
+          <mat-card class="preview-card">
+            <mat-card-header>
+              <mat-card-title class="preview-title">
+                <mat-icon>person</mat-icon>
+                Cliente Selecionado
+              </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="client-details">
+                <div class="detail-row">
+                  <span class="label">Nome:</span>
+                  <span class="value">{{ selectedClient.nome }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="label">Localização:</span>
+                  <span class="value">Quadra {{ selectedClient.quadra }}, Nº {{ selectedClient.numero }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="label">Endereço:</span>
+                  <span class="value">{{ selectedClient.endereco }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="label">Contato:</span>
+                  <span class="value">{{ selectedClient.contato }}</span>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+
+      <mat-divider></mat-divider>
+
+      <!-- Seleção de Plano -->
+      <div class="form-section">
+        <h3 class="section-title">
+          <mat-icon>payment</mat-icon>
+          Selecionar Plano
+        </h3>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Plano de Pagamento</mat-label>
+          <mat-select formControlName="planId" placeholder="Selecione um plano">
+            <mat-option value="">
+              <em>Selecione um plano</em>
+            </mat-option>
+            <mat-option *ngFor="let plan of paymentPlans" [value]="plan._id">
+              {{ plan.name }} - {{ formatCurrency(plan.amount) }}
+            </mat-option>
+          </mat-select>
+          <mat-icon matSuffix>credit_card</mat-icon>
+          <mat-error *ngIf="planId?.hasError('required') && planId?.touched">
+            Selecione um plano
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Preview do Plano Selecionado -->
+        <div *ngIf="selectedPlan" class="plan-preview">
+          <mat-card class="preview-card">
+            <mat-card-header>
+              <mat-card-title class="preview-title">
+                <mat-icon>payment</mat-icon>
+                Plano Selecionado
+              </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="plan-details">
+                <div class="detail-row">
+                  <span class="label">Nome:</span>
+                  <span class="value">{{ selectedPlan.name }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="label">Valor:</span>
+                  <span class="value amount-highlight">{{ formatCurrency(selectedPlan.amount) }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="label">Frequência:</span>
+                  <span class="value">{{ selectedPlan.frequency }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="label">Parcelas:</span>
+                  <span class="value">{{ selectedPlan.installments }}x</span>
+                </div>
+                <div class="detail-row description">
+                  <span class="label">Descrição:</span>
+                  <span class="value">{{ selectedPlan.description }}</span>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+
+      <!-- Resumo da Associação -->
+      <div *ngIf="selectedClient && selectedPlan" class="association-summary">
+        <mat-card class="summary-card">
+          <mat-card-header>
+            <mat-card-title class="summary-title">
+              <mat-icon>link</mat-icon>
+              Resumo da Associação
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="summary-content">
+              <div class="summary-item">
+                <mat-icon>person</mat-icon>
+                <span>{{ selectedClient.nome }}</span>
+              </div>
+              <div class="association-arrow">
+                <mat-icon>arrow_forward</mat-icon>
+              </div>
+              <div class="summary-item">
+                <mat-icon>payment</mat-icon>
+                <span>{{ selectedPlan.name }}</span>
+              </div>
+            </div>
+            <div class="summary-details">
+              <p class="summary-text">
+                O cliente <strong>{{ selectedClient.nome }}</strong> será associado ao plano
+                <strong>{{ selectedPlan.name }}</strong> com valor de
+                <strong>{{ formatCurrency(selectedPlan.amount) }}</strong>
+                {{ selectedPlan.frequency }}.
+              </p>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </form>
+  </div>
+
+  <!-- Ações do Modal -->
+  <div mat-dialog-actions class="modal-actions">
+    <button mat-stroked-button (click)="onCancel()" class="cancel-btn">
+      <mat-icon>close</mat-icon>
+      Cancelar
+    </button>
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="onSubmit()"
+      [disabled]="associationForm.invalid || isLoading"
+      class="confirm-btn">
+      <mat-icon>link</mat-icon>
+      {{ isLoading ? 'Processando...' : 'Associar' }}
+    </button>
+  </div>
+</div>

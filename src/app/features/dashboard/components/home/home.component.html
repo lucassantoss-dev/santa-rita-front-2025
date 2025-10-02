@@ -6,10 +6,10 @@
       Dashboard Administrativo
     </h1>
     <div class="header-actions">
-      <button mat-raised-button color="primary" class="quick-action-btn">
+      <!-- <button mat-raised-button color="primary" class="quick-action-btn">
         <mat-icon>add</mat-icon>
         Novo Cliente
-      </button>
+      </button> -->
       <!-- <button mat-raised-button color="accent" class="quick-action-btn">
         <mat-icon>receipt</mat-icon>
         Gerar Certificado
@@ -21,13 +21,22 @@
   <div class="metrics-grid">
     <mat-card class="metric-card clients-card">
       <mat-card-content>
-        <div class="metric-header">
+        <div class="metric-header" *ngIf="!isLoading; else loadingTemplate">
           <mat-icon class="metric-icon">people</mat-icon>
           <div class="metric-info">
             <h3 class="metric-value">{{totalClients}}</h3>
             <p class="metric-label">Clientes Ativos</p>
           </div>
         </div>
+        <ng-template #loadingTemplate>
+          <div class="metric-header loading">
+            <mat-icon class="metric-icon">people</mat-icon>
+            <div class="metric-info">
+              <div class="skeleton-loader metric-value-skeleton"></div>
+              <p class="metric-label">Clientes Ativos</p>
+            </div>
+          </div>
+        </ng-template>
         <div class="metric-change positive">
           <mat-icon>trending_up</mat-icon>
           <span>+{{newClientsThisMonth}} este mês</span>
@@ -100,7 +109,7 @@
         </div>
       </mat-card-header>
       <mat-card-content>
-        <div class="activity-list">
+        <div class="activity-list" *ngIf="!isLoading && recentActivities.length > 0; else activityLoadingTemplate">
           <div class="activity-item" *ngFor="let activity of recentActivities">
             <div class="activity-icon" [ngClass]="activity.type">
               <mat-icon>{{activity.icon}}</mat-icon>
@@ -112,6 +121,18 @@
             </div>
           </div>
         </div>
+        <ng-template #activityLoadingTemplate>
+          <div class="activity-list">
+            <div class="activity-item loading" *ngFor="let item of [1,2,3]">
+              <div class="activity-icon skeleton-loader activity-icon-skeleton"></div>
+              <div class="activity-content">
+                <div class="skeleton-loader activity-title-skeleton"></div>
+                <div class="skeleton-loader activity-desc-skeleton"></div>
+                <div class="skeleton-loader activity-time-skeleton"></div>
+              </div>
+            </div>
+          </div>
+        </ng-template>
       </mat-card-content>
     </mat-card>
 
@@ -133,9 +154,50 @@
       </mat-card-header>
       <mat-card-content>
         <div class="chart-container">
-          <div class="chart-placeholder">
+          <div *ngIf="isChartLoading" class="chart-loading">
+            <mat-spinner diameter="40"></mat-spinner>
+            <p>Carregando dados de receita...</p>
+          </div>
+          <div *ngIf="!isChartLoading && monthlyRevenueData.length > 0" class="chart-wrapper">
+            <canvas #revenueChart></canvas>
+          </div>
+          <div *ngIf="!isChartLoading && monthlyRevenueData.length === 0" class="chart-no-data">
             <mat-icon>insert_chart</mat-icon>
-            <p>Gráfico de receita será implementado aqui</p>
+            <p>Nenhum dado de receita disponível</p>
+          </div>
+        </div>
+
+        <!-- Resumo da Receita -->
+        <div *ngIf="!isChartLoading && monthlyRevenueData.length > 0" class="revenue-summary">
+          <div class="summary-grid">
+            <div class="summary-item paid">
+              <mat-icon>check_circle</mat-icon>
+              <div class="summary-info">
+                <h4>R$ {{getTotalPaidRevenue() | number:'1.2-2'}}</h4>
+                <p>Receita Paga</p>
+              </div>
+            </div>
+            <div class="summary-item pending">
+              <mat-icon>schedule</mat-icon>
+              <div class="summary-info">
+                <h4>R$ {{getTotalPendingRevenue() | number:'1.2-2'}}</h4>
+                <p>Receita Pendente</p>
+              </div>
+            </div>
+            <div class="summary-item overdue">
+              <mat-icon>warning</mat-icon>
+              <div class="summary-info">
+                <h4>R$ {{getTotalOverdueRevenue() | number:'1.2-2'}}</h4>
+                <p>Receita Vencida</p>
+              </div>
+            </div>
+            <div class="summary-item total">
+              <mat-icon>account_balance</mat-icon>
+              <div class="summary-info">
+                <h4>R$ {{getTotalRevenue() | number:'1.2-2'}}</h4>
+                <p>Receita Total</p>
+              </div>
+            </div>
           </div>
         </div>
       </mat-card-content>
@@ -157,18 +219,18 @@
             <mat-icon>person_add</mat-icon>
             <span>Cadastrar Cliente</span>
           </button>
-          <button mat-raised-button class="quick-action-item" (click)="generateCertificate()">
+          <!-- <button mat-raised-button class="quick-action-item" (click)="generateCertificate()">
             <mat-icon>description</mat-icon>
             <span>Gerar Certificado</span>
-          </button>
+          </button> -->
           <button mat-raised-button class="quick-action-item" (click)="processPayment()">
             <mat-icon>payment</mat-icon>
             <span>Processar Pagamento</span>
           </button>
-          <button mat-raised-button class="quick-action-item" (click)="issueMemberCard()">
+          <!-- <button mat-raised-button class="quick-action-item" (click)="issueMemberCard()">
             <mat-icon>credit_card</mat-icon>
             <span>Emitir Carteirinha</span>
-          </button>
+          </button> -->
           <button mat-raised-button class="quick-action-item" (click)="viewReports()">
             <mat-icon>assessment</mat-icon>
             <span>Relatórios</span>

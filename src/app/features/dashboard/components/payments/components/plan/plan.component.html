@@ -1,0 +1,121 @@
+<div class="plan-form-container">
+  <mat-card class="plan-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>payment</mat-icon>
+        {{ editMode ? 'Editar Plano' : 'Criar Novo Plano' }}
+      </mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="planForm" (ngSubmit)="onSubmit()" class="plan-form">
+        <div class="form-row">
+          <!-- Nome do Plano -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Nome do Plano</mat-label>
+            <input matInput formControlName="name" placeholder="Ex: Plano Mensal Premium">
+            <mat-icon matSuffix>title</mat-icon>
+            <mat-error *ngIf="name?.hasError('required') && name?.touched">
+              Nome do plano é obrigatório
+            </mat-error>
+            <mat-error *ngIf="name?.hasError('minlength') && name?.touched">
+              Nome deve ter pelo menos 3 caracteres
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Identificador</mat-label>
+            <input matInput formControlName="id" placeholder="Ex: plano_mensal_premium">
+            <mat-icon matSuffix>title</mat-icon>
+            <mat-error *ngIf="id?.hasError('required') && id?.touched">
+              Identificador é obrigatório
+            </mat-error>
+            <mat-error *ngIf="id?.hasError('minlength') && id?.touched">
+              Identificador deve ter pelo menos 3 caracteres
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <!-- Valor -->
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Valor</mat-label>
+            <input matInput type="number" formControlName="amount" placeholder="25.00" step="0.01" min="0">
+            <mat-icon matSuffix>attach_money</mat-icon>
+            <mat-hint>Valor em reais (ex: 25.00 = R$ 25,00)</mat-hint>
+            <mat-error *ngIf="amount?.hasError('required') && amount?.touched">
+              Valor é obrigatório
+            </mat-error>
+            <mat-error *ngIf="amount?.hasError('min') && amount?.touched">
+              Valor deve ser maior que zero
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Moeda -->
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Moeda</mat-label>
+            <mat-select formControlName="currency">
+              <mat-option value="brl">Real Brasileiro (BRL)</mat-option>
+              <mat-option value="usd">Dólar Americano (USD)</mat-option>
+              <mat-option value="eur">Euro (EUR)</mat-option>
+            </mat-select>
+            <mat-icon matSuffix>public</mat-icon>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <!-- Intervalo -->
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Intervalo de Cobrança</mat-label>
+            <mat-select formControlName="interval">
+              <mat-option *ngFor="let option of intervalOptions" [value]="option.value">
+                {{ option.label }}
+              </mat-option>
+            </mat-select>
+            <mat-icon matSuffix>schedule</mat-icon>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <!-- Descrição -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Descrição</mat-label>
+            <textarea matInput formControlName="description" rows="3"
+                      placeholder="Descreva os detalhes do plano..."></textarea>
+            <mat-icon matSuffix>description</mat-icon>
+            <mat-error *ngIf="description?.hasError('required') && description?.touched">
+              Descrição é obrigatória
+            </mat-error>
+            <mat-error *ngIf="description?.hasError('minlength') && description?.touched">
+              Descrição deve ter pelo menos 10 caracteres
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <!-- Preview do Valor -->
+        <div *ngIf="planForm.get('amount')?.value > 0" class="value-preview">
+          <mat-icon>info</mat-icon>
+          <span>Valor a ser cobrado: <strong>{{ formatCurrency(planForm.get('amount')?.value) }}</strong></span>
+        </div>
+      </form>
+    </mat-card-content>
+
+    <mat-card-actions class="form-actions">
+      <button mat-raised-button color="primary"
+              (click)="onSubmit()"
+              [disabled]="planForm.invalid || isLoading"
+              class="action-btn primary">
+        <mat-icon>{{ isLoading ? 'hourglass_empty' : 'save' }}</mat-icon>
+        {{ isLoading ? 'Salvando...' : (editMode ? 'Atualizar Plano' : 'Criar Plano') }}
+      </button>
+
+      <button mat-stroked-button
+              (click)="onCancel()"
+              [disabled]="isLoading"
+              class="action-btn secondary">
+        <mat-icon>cancel</mat-icon>
+        Cancelar
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</div>

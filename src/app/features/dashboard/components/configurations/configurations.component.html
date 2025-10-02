@@ -1,0 +1,170 @@
+<div class="configurations-container">
+  <!-- Header da Página -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="title-section">
+        <h1 class="page-title">
+          <mat-icon>settings</mat-icon>
+          Configurações do Sistema
+        </h1>
+        <p class="page-subtitle">Gerencie as configurações gerais do cemitério</p>
+      </div>
+      <div class="header-actions">
+        <button mat-raised-button color="primary" class="primary-action-btn" (click)="onSave()" [disabled]="isLoading || configForm.invalid">
+          <mat-icon>save</mat-icon>
+          Salvar Configurações
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Configurações -->
+  <div class="configs-grid">
+    <!-- Configurações Gerais -->
+    <mat-card class="config-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>tune</mat-icon>
+          Configurações Gerais
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <form [formGroup]="configForm" class="config-form">
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Nome do Site</mat-label>
+              <input matInput formControlName="siteName" placeholder="Nome do cemitério">
+              <mat-icon matSuffix>business</mat-icon>
+              <mat-error *ngIf="configForm.get('siteName')?.hasError('required')">
+                Nome é obrigatório
+              </mat-error>
+              <mat-error *ngIf="configForm.get('siteName')?.hasError('minlength')">
+                Nome deve ter pelo menos 3 caracteres
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Máximo de Clientes</mat-label>
+              <input matInput type="number" formControlName="maxClients" placeholder="1000">
+              <mat-icon matSuffix>people</mat-icon>
+              <mat-error *ngIf="configForm.get('maxClients')?.hasError('required')">
+                Valor é obrigatório
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Dias Padrão para Pagamento</mat-label>
+              <input matInput type="number" formControlName="defaultPaymentDays" placeholder="30">
+              <mat-icon matSuffix>today</mat-icon>
+              <mat-error *ngIf="configForm.get('defaultPaymentDays')?.hasError('required')">
+                Valor é obrigatório
+              </mat-error>
+            </mat-form-field>
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Notificações -->
+    <mat-card class="config-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>notifications</mat-icon>
+          Notificações
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="notification-options">
+          <div class="option-item">
+            <div class="option-info">
+              <h4>Notificações por E-mail</h4>
+              <p>Receber notificações importantes por e-mail</p>
+            </div>
+            <mat-slide-toggle formControlName="emailNotifications" color="primary"></mat-slide-toggle>
+          </div>
+
+          <div class="option-item">
+            <div class="option-info">
+              <h4>Notificações por SMS</h4>
+              <p>Receber notificações urgentes por SMS</p>
+            </div>
+            <mat-slide-toggle formControlName="smsNotifications" color="primary"></mat-slide-toggle>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Backup e Segurança -->
+    <mat-card class="config-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>security</mat-icon>
+          Backup e Segurança
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="backup-options">
+          <div class="option-item">
+            <div class="option-info">
+              <h4>Backup Automático</h4>
+              <p>Ativar backup automático dos dados</p>
+            </div>
+            <mat-slide-toggle formControlName="backupEnabled" color="primary"></mat-slide-toggle>
+          </div>
+
+          <div class="form-row" *ngIf="configForm.get('backupEnabled')?.value">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Frequência do Backup</mat-label>
+              <mat-select formControlName="autoBackupFrequency">
+                <mat-option *ngFor="let freq of backupFrequencies" [value]="freq.value">
+                  {{freq.label}}
+                </mat-option>
+              </mat-select>
+              <mat-icon matSuffix>schedule</mat-icon>
+            </mat-form-field>
+          </div>
+
+          <div class="backup-actions">
+            <button mat-stroked-button class="backup-btn" (click)="onBackup()" [disabled]="isLoading">
+              <mat-icon>backup</mat-icon>
+              Fazer Backup Agora
+            </button>
+
+            <button mat-stroked-button class="restore-btn" (click)="onRestore()" [disabled]="isLoading">
+              <mat-icon>restore</mat-icon>
+              Restaurar Sistema
+            </button>
+          </div>
+
+          <div class="option-item">
+            <div class="option-info">
+              <h4>Modo Manutenção</h4>
+              <p>Ativar modo manutenção para usuários</p>
+            </div>
+            <mat-slide-toggle formControlName="maintenanceMode" color="warn"></mat-slide-toggle>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Ações do Formulário -->
+  <div class="form-actions">
+    <button mat-button class="secondary-btn" (click)="onReset()" [disabled]="isLoading">
+      <mat-icon>refresh</mat-icon>
+      Resetar
+    </button>
+
+    <button mat-raised-button color="primary" class="primary-btn" (click)="onSave()" [disabled]="isLoading || configForm.invalid">
+      <mat-icon>save</mat-icon>
+      Salvar Configurações
+    </button>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" *ngIf="isLoading">
+    <mat-spinner diameter="50"></mat-spinner>
+  </div>
+</div>

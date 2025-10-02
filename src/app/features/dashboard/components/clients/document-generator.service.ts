@@ -1,13 +1,21 @@
 import { Injectable } from '@angular/core';
 import jsPDF from 'jspdf';
+import { ActivityService } from '../../../../core/activity.service';
 
 @Injectable({ providedIn: 'root' })
 export class DocumentGeneratorService {
+
+  constructor(private activityService: ActivityService) {}
+
   gerarCarteirinha(cliente: any) {
     const documento = new jsPDF('landscape');
     this.left(documento, cliente);
     this.right(documento, cliente);
     documento.autoPrint();
+
+    // Registrar atividade de geração de carteirinha
+    this.activityService.addCardActivity('create', cliente.nome, cliente._id);
+
     window.open(documento.output('bloburl'), '_blank');
   }
 
@@ -15,6 +23,10 @@ export class DocumentGeneratorService {
     const documento = new jsPDF('landscape');
     this.teste(documento, cliente);
     documento.autoPrint();
+
+    // Registrar atividade de geração de certificado
+    this.activityService.addCertificateActivity('create', cliente.nome, cliente._id);
+
     window.open(documento.output('bloburl'), '_blank');
   }
 

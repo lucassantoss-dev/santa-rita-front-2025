@@ -1,0 +1,291 @@
+<div class="payments-container">
+  <!-- Header da Página -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="title-section">
+        <h1 class="page-title">
+          <mat-icon>payments</mat-icon>
+          Gestão de Pagamentos
+        </h1>
+        <p class="page-subtitle">Gerencie todos os pagamentos do cemitério</p>
+      </div>
+      <div class="header-actions">
+        <button mat-raised-button class="primary-action-btn" (click)="openQuickPayment()">
+          <mat-icon>flash_on</mat-icon>
+          Criar Recorrência
+        </button>
+        <button mat-raised-button class="primary-action-btn" (click)="openCreateForm()">
+          <mat-icon>add</mat-icon>
+          Novo Pagamento
+        </button>
+        <button mat-raised-button class="primary-action-btn" (click)="createPlan()">
+          <mat-icon>add</mat-icon>
+          Novo Plano
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estatísticas Rápidas -->
+  <div class="stats-grid">
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content total">
+          <div class="stat-icon">
+            <mat-icon>payments</mat-icon>
+          </div>
+          <div class="stat-info">
+            <h3>{{ stats.totalPayments }}</h3>
+            <p>Total de Pagamentos</p>
+            <span class="amount">{{ formatCurrency(stats.totalAmount) }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content pending">
+          <div class="stat-icon">
+            <mat-icon>schedule</mat-icon>
+          </div>
+          <div class="stat-info">
+            <h3>{{ stats.pendingPayments }}</h3>
+            <p>Pendentes</p>
+            <span class="amount">{{ formatCurrency(stats.pendingAmount) }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content paid">
+          <div class="stat-icon">
+            <mat-icon>check_circle</mat-icon>
+          </div>
+          <div class="stat-info">
+            <h3>{{ stats.paidPayments }}</h3>
+            <p>Pagos</p>
+            <span class="amount">{{ formatCurrency(stats.paidAmount) }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content overdue">
+          <div class="stat-icon">
+            <mat-icon>warning</mat-icon>
+          </div>
+          <div class="stat-info">
+            <h3>{{ stats.overduePayments }}</h3>
+            <p>Vencidos</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Seção de Filtros -->
+  <mat-card class="filters-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>filter_list</mat-icon>
+        Filtros de Pesquisa
+      </mat-card-title>
+      <button mat-icon-button (click)="toggleFilters()" class="toggle-filters-btn">
+        <mat-icon>{{filtersExpanded ? 'expand_less' : 'expand_more'}}</mat-icon>
+      </button>
+    </mat-card-header>
+    <mat-card-content [@expandCollapse]="filtersExpanded ? 'expanded' : 'collapsed'">
+      <div class="filters-grid">
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Pesquisar Pagamento</mat-label>
+          <input matInput [(ngModel)]="searchValue" (input)="onSearchChange()" placeholder="Nome do cliente, descrição...">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Status</mat-label>
+          <mat-select [(value)]="selectedFilter" (selectionChange)="onFilterChange()">
+            <mat-option *ngFor="let option of filterOptions" [value]="option.value">
+              {{ option.label }}
+            </mat-option>
+          </mat-select>
+          <mat-icon matSuffix>filter_alt</mat-icon>
+        </mat-form-field>
+      </div>
+
+      <div class="filters-actions">
+        <button mat-raised-button color="primary" (click)="onSearch()" class="filter-btn">
+          <mat-icon>search</mat-icon>
+          Pesquisar
+        </button>
+        <button mat-stroked-button (click)="clearFilters()" class="filter-btn">
+          <mat-icon>clear</mat-icon>
+          Limpar Filtros
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Carregando pagamentos...</p>
+  </div>
+
+  <!-- Resultados e Tabela -->
+  <mat-card *ngIf="!loading" class="results-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>list</mat-icon>
+        Resultados da Pesquisa
+      </mat-card-title>
+      <div class="results-info">
+        <span class="results-count">{{ dataSource.data.length }} pagamentos</span>
+      </div>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="table-view">
+        <div class="table-wrapper">
+          <table mat-table [dataSource]="dataSource" class="modern-table" matSort>
+            <!-- Coluna de Informações do Cliente -->
+            <ng-container matColumnDef="clientName">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Cliente</th>
+              <td mat-cell *matCellDef="let payment" class="client-cell">
+                <div class="client-info">
+                  <h4>{{ payment.responsavel }}</h4>
+                  <p>{{ payment.endereco }}</p>
+                  <div class="client-tags">
+                    <span class="status-tag" [ngClass]="getStatusClass(payment.status)">
+                      {{ getStatusLabel(payment.status) }}
+                    </span>
+                  </div>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Coluna de Localização -->
+            <ng-container matColumnDef="location">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Localização</th>
+              <td mat-cell *matCellDef="let payment">
+                <div class="location-info">
+                  <div class="location-item">
+                    <mat-icon>grid_view</mat-icon>
+                    <span>Quadra {{ payment.quadra }}</span>
+                  </div>
+                  <div class="location-item">
+                    <mat-icon>numbers</mat-icon>
+                    <span>Nº {{ payment.numero }}</span>
+                  </div>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Coluna de Valor -->
+            <ng-container matColumnDef="amount">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Valor</th>
+              <td mat-cell *matCellDef="let payment" class="amount-cell">
+                <strong>{{ formatCurrency(payment.valor) }}</strong>
+              </td>
+            </ng-container>
+
+            <!-- Coluna de Data de Vencimento -->
+            <ng-container matColumnDef="dueDate">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Vencimento</th>
+              <td mat-cell *matCellDef="let payment" class="date-cell">
+                <span [ngClass]="{'overdue-date': isOverdue(payment), 'paid-date': payment.paymentDate}">
+                  {{ formatDate(payment.createdAt) }}
+                </span>
+              </td>
+            </ng-container>
+
+            <!-- Coluna de Ações -->
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Ações</th>
+              <td mat-cell *matCellDef="let payment" class="actions-cell">
+                <div class="actions-container">
+                  <button mat-icon-button class="action-btn edit-btn"
+                          title="Editar pagamento"
+                          (click)="openEditForm(payment)">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+
+                  <button mat-icon-button class="action-btn paid-btn"
+                          title="Marcar como pago"
+                          [disabled]="payment.status === 'pago'"
+                          (click)="markAsPaid(payment)">
+                    <mat-icon>check_circle</mat-icon>
+                  </button>
+
+                  <button mat-icon-button class="action-btn delete-btn"
+                          title="Excluir pagamento"
+                          (click)="deletePayment(payment)">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
+          </table>
+
+          <!-- Estado vazio -->
+          <div *ngIf="dataSource.data.length === 0" class="empty-state">
+            <mat-icon>payment</mat-icon>
+            <h3>Nenhum pagamento encontrado</h3>
+            <p>Não há pagamentos que correspondam aos filtros selecionados.</p>
+            <button mat-raised-button (click)="clearFilters()">
+              <mat-icon>clear</mat-icon>
+              Limpar Filtros
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Paginação -->
+      <div *ngIf="!loading && dataSource.data.length > 0" class="pagination-container">
+        <mat-paginator
+          [length]="dataSource.data.length"
+          [pageSize]="pageSize"
+          [pageIndex]="pageIndex"
+          [pageSizeOptions]="pageSizeOptions"
+          [showFirstLastButtons]="true"
+          (page)="onPageChange($event)">
+        </mat-paginator>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Modal do Formulário -->
+  <div *ngIf="showCreateForm" class="form-overlay" (click)="closeCreateForm()">
+    <div class="form-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ editingPayment ? 'Editar Pagamento' : 'Novo Pagamento' }}</h2>
+        <button mat-icon-button class="close-button" (click)="closeCreateForm()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      <div class="modal-content">
+        <div class="form-placeholder">
+          <p>Formulário de pagamento será implementado aqui.</p>
+          <p>Incluirá campos para cliente, valor, data de vencimento, descrição, etc.</p>
+          <div class="form-actions">
+            <button mat-raised-button class="primary-btn" (click)="savePayment()">
+              <mat-icon>save</mat-icon>
+              {{ editingPayment ? 'Salvar Alterações' : 'Criar Pagamento' }}
+            </button>
+            <button mat-stroked-button class="secondary-btn" (click)="closeCreateForm()">
+              <mat-icon>cancel</mat-icon>
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

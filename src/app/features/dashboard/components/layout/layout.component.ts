@@ -84,12 +84,12 @@ export class LayoutComponent implements OnInit {
   }
 
   abrirConfiguracoes() {
-    const url = '/dashboard/settings'
+    const url = '/dashboard/configurations'
     this.router.navigateByUrl(url);
   }
 
   editarPerfil() {
-    const url = '/dashboard/user-profile'
+    const url = '/dashboard/profile'
     this.router.navigateByUrl(url);
   }
 

@@ -1,11 +1,14 @@
 import { Component, computed, EventEmitter, Input, OnInit, Output, Signal, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { ActivityService } from '../../../../../core/activity.service';
 export type MenuItem = {
   icon: string;
   label: string;
   route?: string;
   isDropdown?: boolean;
   children?: MenuItem[];
+  isDivider?: boolean;
+  isLogout?: boolean;
 }
 @Component({
   selector: 'app-sidenav',
@@ -31,6 +34,7 @@ export class SidenavComponent implements OnInit {
   menuItems = signal<MenuItem[]>([]);
   constructor(
     private router: Router,
+    private activityService: ActivityService
   ) { }
 
   ngOnInit(): void {
@@ -56,10 +60,41 @@ export class SidenavComponent implements OnInit {
       });
 
       items.push({
-        icon: 'person',
+        icon: 'description',
         label: 'Pagamentos',
         route: 'dashboard/payments'
       });
+
+      items.push({
+        icon: 'account_circle',
+        label: 'Meu Perfil',
+        route: 'dashboard/profile'
+      });
+
+      items.push({
+        icon: 'settings',
+        label: 'Configurações',
+        route: 'dashboard/configurations'
+      });
+
+      // Divider antes do logout
+      items.push({
+        icon: '',
+        label: '',
+        isDivider: true
+      });
+
+      items.push({
+        icon: 'logout',
+        label: 'Sair',
+        isLogout: true
+      });
+
+      // items.push({
+      //   icon: 'settings',
+      //   label: 'Configurações',
+      //   route: 'dashboard/configurations'
+      // });
 
       // const children: MenuItem[] = [];
 
@@ -122,13 +157,27 @@ export class SidenavComponent implements OnInit {
     return this.router.url.includes(route);
   }
 
-  navigateAndClose(route: string | undefined) {
+  navigateAndClose(route: string | undefined, item?: MenuItem) {
+    if (item?.isLogout) {
+      this.sair();
+      return;
+    }
+
     if (route) {
       this.router.navigate([route]);
       if (window.innerWidth < 1280) {
         this.itemClicked.emit();
       }
     }
+  }
+
+  sair() {
+    // Registrar atividade de logout
+    const userName = 'Usuário'; // Em produção, pegar do serviço de autenticação
+    this.activityService.addLogoutActivity(userName);
+
+    localStorage.removeItem('auth_token');
+    this.router.navigate(['/']);
   }
 
   /**

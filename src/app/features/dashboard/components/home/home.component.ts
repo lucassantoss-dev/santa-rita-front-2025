@@ -1,21 +1,25 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { Subscription } from 'rxjs';
+import {
+  DashboardService,
+  DashboardStats,
+  SystemAlert
+} from '../../../../core/dashboard.service';
+import { ActivityService, Activity } from '../../../../core/activity.service';
+import { PopupService } from '../../../../shared/popup/popup.service';
+import { PaymentService } from '../../../../core/payment.service';
+import { Chart, ChartConfiguration, ChartType, registerables } from 'chart.js';
 
-interface Activity {
-  id: number;
-  type: 'client' | 'payment' | 'certificate' | 'card';
-  icon: string;
-  title: string;
-  description: string;
-  timestamp: Date;
-}
+Chart.register(...registerables);
 
-interface Alert {
-  id: number;
-  type: 'warning' | 'info' | 'success' | 'error';
-  icon: string;
-  title: string;
-  message: string;
+interface MonthlyRevenue {
+  month: string;
+  totalRevenue: number;
+  paidRevenue: number;
+  overdueRevenue: number;
+  pendingRevenue: number;
+  paymentsCount: number;
 }
 
 @Component({
@@ -23,108 +27,339 @@ interface Alert {
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
+  @ViewChild('revenueChart', { static: false }) revenueChart!: ElementRef<HTMLCanvasElement>;
 
-  // Métricas principais
-  totalClients: number = 1247;
-  newClientsThisMonth: number = 18;
-  totalRevenue: number = 89450.00;
-  revenueGrowth: number = 12.5;
-  certificatesIssued: number = 156;
-  certificatesPending: number = 8;
-  memberCards: number = 892;
-  cardsToRenew: number = 23;
+  // Chart data
+  chart: Chart | null = null;
+  selectedPeriod: '6m' | '1y' = '6m';
+  monthlyRevenueData: MonthlyRevenue[] = [];
+  isChartLoading = true;
 
-  // Controle de período do gráfico
-  selectedPeriod: string = '6m';
+  // Dados dinâmicos do dashboard
+  dashboardStats: DashboardStats = {
+    totalClients: 0,
+    newClientsThisMonth: 0,
+    activeClients: 0,
+    certificatesIssued: 0,
+    certificatesPending: 0,
+    memberCards: 0,
+    cardsToRenew: 0
+  };
 
-  // Atividades recentes
-  recentActivities: Activity[] = [
-    {
-      id: 1,
-      type: 'client',
-      icon: 'person_add',
-      title: 'Novo Cliente Cadastrado',
-      description: 'Maria Santos Silva foi cadastrada no sistema',
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000) // 2 horas atrás
-    },
-    {
-      id: 2,
-      type: 'payment',
-      icon: 'payment',
-      title: 'Pagamento Processado',
-      description: 'Mensalidade de João Oliveira - R$ 350,00',
-      timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000) // 4 horas atrás
-    },
-    {
-      id: 3,
-      type: 'certificate',
-      icon: 'description',
-      title: 'Certificado de Óbito Emitido',
-      description: 'Certificado #2024-0156 para família Rodrigues',
-      timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000) // 6 horas atrás
-    },
-    {
-      id: 4,
-      type: 'card',
-      icon: 'credit_card',
-      title: 'Carteirinha Renovada',
-      description: 'Carteirinha de Ana Paula Souza renovada até 2025',
-      timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000) // 8 horas atrás
-    },
-    {
-      id: 5,
-      type: 'client',
-      icon: 'edit',
-      title: 'Cliente Atualizado',
-      description: 'Dados de contato de Carlos Mendes atualizados',
-      timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000) // 12 horas atrás
-    },
-    {
-      id: 6,
-      type: 'payment',
-      icon: 'attach_money',
-      title: 'Pagamento Recebido',
-      description: 'Taxa de manutenção - Família Silva - R$ 120,00',
-      timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000) // 1 dia atrás
-    }
-  ];
+  // Controle de loading
+  isLoading: boolean = false;
 
-  // Alertas e notificações
-  alerts: Alert[] = [
-    {
-      id: 1,
-      type: 'warning',
-      icon: 'schedule',
-      title: 'Backup Atrasado',
-      message: 'O backup automático está com 2 horas de atraso. Verifique a configuração do servidor.'
-    },
-    {
-      id: 2,
-      type: 'info',
-      icon: 'info',
-      title: 'Manutenção Programada',
-      message: 'Manutenção do sistema agendada para domingo às 02:00. Duração estimada: 2 horas.'
-    }
-  ];
+  // Atividades recentes e alertas
+  recentActivities: Activity[] = [];
+  alerts: SystemAlert[] = [];
 
-  constructor(private router: Router) { }
+  // Subscriptions para gerenciar observables
+  private subscriptions: Subscription = new Subscription();
+
+  // Propriedades computadas para compatibilidade com template
+  get totalClients() { return this.dashboardStats.totalClients; }
+  get newClientsThisMonth() { return this.dashboardStats.newClientsThisMonth; }
+  get certificatesIssued() { return this.dashboardStats.certificatesIssued; }
+  get certificatesPending() { return this.dashboardStats.certificatesPending; }
+  get memberCards() { return this.dashboardStats.memberCards; }
+  get cardsToRenew() { return this.dashboardStats.cardsToRenew; }
+
+  constructor(
+    private router: Router,
+    private dashboardService: DashboardService,
+    private activityService: ActivityService,
+    private popupService: PopupService,
+    private paymentService: PaymentService
+  ) { }
 
   ngOnInit(): void {
-    // Simular carregamento de dados em uma aplicação real
     this.loadDashboardData();
+    this.setupSubscriptions();
+    this.loadRevenueData();
+  }
+
+  ngAfterViewInit(): void {
+    // Chart será inicializado após carregar os dados
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
+  }
+
+  private setupSubscriptions(): void {
+    // Subscription para dados do dashboard
+    this.subscriptions.add(
+      this.dashboardService.getDashboardStats().subscribe(stats => {
+        this.dashboardStats = stats;
+      })
+    );
+
+    // Subscription para atividades recentes
+    this.subscriptions.add(
+      this.activityService.getRecentActivities().subscribe(activities => {
+        this.recentActivities = activities.slice(0, 6); // Mostrar apenas as 6 mais recentes
+      })
+    );
+
+    // Subscription para alertas do sistema
+    this.subscriptions.add(
+      this.dashboardService.getSystemAlerts().subscribe(alerts => {
+        this.alerts = alerts;
+      })
+    );
+
+    // Subscription para estado de loading
+    this.subscriptions.add(
+      this.dashboardService.getLoadingState().subscribe(loading => {
+        this.isLoading = loading;
+      })
+    );
   }
 
   private loadDashboardData(): void {
-    // Em uma aplicação real, aqui seria feita a chamada para APIs
-    console.log('Dashboard data loaded');
+    this.dashboardService.loadDashboardData().subscribe({
+      next: () => {
+        console.log('Dados do dashboard carregados com sucesso');
+      },
+      error: (error) => {
+        console.error('Erro ao carregar dados do dashboard:', error);
+        this.popupService.showErrorMessage('Erro ao carregar dados do dashboard');
+      }
+    });
   }
 
   // Métodos para seleção de período do gráfico
-  selectPeriod(period: string): void {
+  selectPeriod(period: '6m' | '1y'): void {
     this.selectedPeriod = period;
-    // Aqui seria atualizado o gráfico com novos dados
-    console.log(`Período selecionado: ${period}`);
+    this.loadRevenueData();
+  }
+
+  loadRevenueData(): void {
+    this.isChartLoading = true;
+
+    // Carregar dados de pagamentos
+    this.paymentService.getAllPayments().subscribe({
+      next: (response) => {
+        this.processRevenueData(response.data || []);
+        setTimeout(() => {
+          this.createRevenueChart();
+        }, 100);
+        this.isChartLoading = false;
+      },
+      error: (error) => {
+        console.error('Erro ao carregar dados de receita:', error);
+        // Usar dados mockados em caso de erro
+        this.processRevenueDataMock();
+        setTimeout(() => {
+          this.createRevenueChart();
+        }, 100);
+        this.isChartLoading = false;
+      }
+    });
+  }
+
+  private processRevenueDataMock(): void {
+    // Dados mockados para demonstração
+    const mockData = [
+      { month: 'Ago/24', totalRevenue: 5400, paidRevenue: 3200, overdueRevenue: 800, pendingRevenue: 1400, paymentsCount: 12 },
+      { month: 'Set/24', totalRevenue: 6200, paidRevenue: 4100, overdueRevenue: 900, pendingRevenue: 1200, paymentsCount: 15 },
+      { month: 'Out/24', totalRevenue: 5800, paidRevenue: 3900, overdueRevenue: 700, pendingRevenue: 1200, paymentsCount: 14 },
+      { month: 'Nov/24', totalRevenue: 7200, paidRevenue: 5100, overdueRevenue: 1100, pendingRevenue: 1000, paymentsCount: 18 },
+      { month: 'Dez/24', totalRevenue: 6800, paidRevenue: 4800, overdueRevenue: 600, pendingRevenue: 1400, paymentsCount: 16 },
+      { month: 'Jan/25', totalRevenue: 7800, paidRevenue: 5600, overdueRevenue: 1200, pendingRevenue: 1000, paymentsCount: 20 }
+    ];
+
+    this.monthlyRevenueData = this.selectedPeriod === '6m' ? mockData : mockData.slice(-12);
+  }
+
+  private processRevenueData(payments: any[]): void {
+    const months = this.getLastMonths(this.selectedPeriod === '6m' ? 6 : 12);
+
+    this.monthlyRevenueData = months.map(month => {
+      const monthPayments = payments.filter(payment => {
+        const paymentMonth = new Date(payment.createdAt).toISOString().substring(0, 7);
+        return paymentMonth === month.value;
+      });
+
+      const totalRevenue = monthPayments.reduce((sum, payment) => sum + (payment.valor || 0), 0);
+      const paidPayments = monthPayments.filter(p => p.paymentDate);
+      const paidRevenue = paidPayments.reduce((sum, payment) => sum + (payment.valor || 0), 0);
+
+      const overduePayments = monthPayments.filter(p => !p.paymentDate && this.isOverdue(p));
+      const overdueRevenue = overduePayments.reduce((sum, payment) => sum + (payment.valor || 0), 0);
+
+      const pendingRevenue = totalRevenue - paidRevenue - overdueRevenue;
+
+      return {
+        month: month.label,
+        totalRevenue,
+        paidRevenue,
+        overdueRevenue,
+        pendingRevenue,
+        paymentsCount: monthPayments.length
+      };
+    });
+  }
+
+  private getLastMonths(count: number): { label: string; value: string }[] {
+    const months = [];
+    const now = new Date();
+
+    for (let i = count - 1; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthNames = [
+        'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
+        'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'
+      ];
+
+      months.push({
+        label: `${monthNames[date.getMonth()]}/${date.getFullYear().toString().slice(-2)}`,
+        value: date.toISOString().substring(0, 7)
+      });
+    }
+
+    return months;
+  }
+
+  private isOverdue(payment: any): boolean {
+    if (payment.paymentDate) return false;
+    const dueDate = new Date(payment.dueDate || payment.createdAt);
+    return dueDate < new Date();
+  }
+
+  private createRevenueChart(): void {
+    if (this.chart) {
+      this.chart.destroy();
+    }
+
+    if (!this.revenueChart) return;
+
+    const ctx = this.revenueChart.nativeElement.getContext('2d');
+    if (!ctx) return;
+
+    const config: ChartConfiguration = {
+      type: 'bar' as ChartType,
+      data: {
+        labels: this.monthlyRevenueData.map(data => data.month),
+        datasets: [
+          {
+            label: 'Receita Paga',
+            data: this.monthlyRevenueData.map(data => data.paidRevenue),
+            backgroundColor: 'rgba(40, 167, 69, 0.8)',
+            borderColor: 'rgba(40, 167, 69, 1)',
+            borderWidth: 1
+          },
+          {
+            label: 'Receita Pendente',
+            data: this.monthlyRevenueData.map(data => data.pendingRevenue),
+            backgroundColor: 'rgba(255, 193, 7, 0.8)',
+            borderColor: 'rgba(255, 193, 7, 1)',
+            borderWidth: 1
+          },
+          {
+            label: 'Receita Vencida',
+            data: this.monthlyRevenueData.map(data => data.overdueRevenue),
+            backgroundColor: 'rgba(220, 53, 69, 0.8)',
+            borderColor: 'rgba(220, 53, 69, 1)',
+            borderWidth: 1
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          title: {
+            display: true,
+            text: `Receita dos Últimos ${this.selectedPeriod === '6m' ? '6 Meses' : '12 Meses'}`,
+            font: {
+              size: 16,
+              weight: 'bold'
+            },
+            color: '#2c3e50'
+          },
+          legend: {
+            display: true,
+            position: 'top',
+            labels: {
+              usePointStyle: true,
+              padding: 20,
+              color: '#2c3e50'
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: (context) => {
+                const value = context.parsed.y;
+                return `${context.dataset.label}: R$ ${this.formatCurrencyValue(value)}`;
+              },
+              footer: (tooltipItems) => {
+                const monthIndex = tooltipItems[0].dataIndex;
+                const monthData = this.monthlyRevenueData[monthIndex];
+                return [
+                  `Total: R$ ${this.formatCurrencyValue(monthData.totalRevenue)}`,
+                  `Pagamentos: ${monthData.paymentsCount}`
+                ];
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            stacked: true,
+            grid: {
+              display: false
+            },
+            ticks: {
+              color: '#6c757d'
+            }
+          },
+          y: {
+            stacked: true,
+            beginAtZero: true,
+            grid: {
+              color: 'rgba(0, 0, 0, 0.1)'
+            },
+            ticks: {
+              color: '#6c757d',
+              callback: (value) => {
+                return 'R$ ' + this.formatCurrencyValue(Number(value));
+              }
+            }
+          }
+        },
+        interaction: {
+          intersect: false,
+          mode: 'index'
+        }
+      }
+    };
+
+    this.chart = new Chart(ctx, config);
+  }
+
+  getTotalRevenue(): number {
+    return this.monthlyRevenueData.reduce((sum, month) => sum + month.totalRevenue, 0);
+  }
+
+  getTotalPaidRevenue(): number {
+    return this.monthlyRevenueData.reduce((sum, month) => sum + month.paidRevenue, 0);
+  }
+
+  getTotalPendingRevenue(): number {
+    return this.monthlyRevenueData.reduce((sum, month) => sum + month.pendingRevenue, 0);
+  }
+
+  getTotalOverdueRevenue(): number {
+    return this.monthlyRevenueData.reduce((sum, month) => sum + month.overdueRevenue, 0);
+  }
+
+  private formatCurrencyValue(value: number): string {
+    return new Intl.NumberFormat('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(value);
   }
 
   // Métodos de navegação e ações rápidas
@@ -133,36 +368,30 @@ export class HomeComponent implements OnInit {
   }
 
   generateCertificate(): void {
-    // Lógica para gerar certificado
-    console.log('Gerando novo certificado...');
-    // Em uma aplicação real, abriria modal ou navegaria para formulário
+    this.router.navigate(['/dashboard/clients']);
   }
 
   processPayment(): void {
-    this.router.navigate(['/payment']);
+    this.router.navigate(['/dashboard/payments']);
   }
 
   issueMemberCard(): void {
-    // Lógica para emitir carteirinha
-    console.log('Emitindo nova carteirinha...');
-    // Em uma aplicação real, abriria modal de seleção de cliente
+    this.router.navigate(['/dashboard/clients']);
   }
 
   viewReports(): void {
-    // Navegar para seção de relatórios
     console.log('Abrindo relatórios...');
     this.router.navigate(['/dashboard/reports']);
   }
 
   manageSettings(): void {
-    // Navegar para configurações
     console.log('Abrindo configurações...');
-    this.router.navigate(['/dashboard/settings']);
+    this.router.navigate(['/dashboard/configurations']);
   }
 
   // Método para dismissar alertas
   dismissAlert(alertId: number): void {
-    this.alerts = this.alerts.filter(alert => alert.id !== alertId);
+    this.dashboardService.dismissAlert(alertId);
     console.log(`Alerta ${alertId} dismissado`);
   }
 
@@ -203,13 +432,9 @@ export class HomeComponent implements OnInit {
     }
   }
 
-  // Método para atualizar métricas (simulação)
+  // Método para atualizar métricas (forçar refresh dos dados)
   refreshMetrics(): void {
-    // Simular pequenas variações nas métricas
-    this.totalClients += Math.floor(Math.random() * 3);
-    this.totalRevenue += Math.random() * 1000;
-    this.certificatesIssued += Math.floor(Math.random() * 2);
-
+    this.loadDashboardData();
     console.log('Métricas atualizadas');
   }
 }
