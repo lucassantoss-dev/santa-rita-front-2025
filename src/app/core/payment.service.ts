@@ -46,6 +46,12 @@ export class PaymentService {
     });
   }
 
+  // Buscar boletos pendentes por CPF
+  getBoletosByCpf(cpf: string): Observable<PaymentApiInterface> {
+    const url: string = `${this.urlBackEnd}/payment/boletos/${cpf}`;
+    return this.http.get<PaymentApiInterface>(url);
+  }
+
   // Buscar planos de pagamento
   getPaymentPlans(): Observable<PaymentPlanApiInterface> {
     const url: string = `${this.urlBackEnd}/plan`;
@@ -107,5 +113,17 @@ export class PaymentService {
       paidAmount: 120.00,
       pendingAmount: 930.00
     });
+  }
+
+  // Criar pagamento PIX via Mercado Pago
+  createPixPayment(paymentData: any): Observable<any> {
+    const url: string = `${this.urlBackEnd}/payment/mercadopago/pix`;
+    return this.http.post<any>(url, paymentData);
+  }
+
+  // Criar pagamento Boleto via Mercado Pago
+  createBoletoPayment(paymentData: any): Observable<any> {
+    const url: string = `${this.urlBackEnd}/payment/mercadopago/boleto`;
+    return this.http.post<any>(url, paymentData);
   }
 }

@@ -25,10 +25,10 @@
       >
     </mat-form-field>
     <mat-form-field appearance="outline">
-      <mat-label>Número</mat-label>
-      <input matInput type="number" formControlName="numero" required />
+      <mat-label>Número do Túmulo</mat-label>
+      <input matInput formControlName="numero" required placeholder="Ex: 101" />
       <mat-error *ngIf="clientForm.get('numero')?.hasError('required')"
-        >Número obrigatório</mat-error
+        >Número do túmulo obrigatório</mat-error
       >
     </mat-form-field>
   </div>
@@ -44,16 +44,20 @@
     </mat-form-field>
     <mat-form-field appearance="outline">
       <mat-label>Nome</mat-label>
-      <input matInput formControlName="nome" required />
+      <input matInput formControlName="nome" required placeholder="Ex: João da Silva" />
       <mat-error *ngIf="clientForm.get('nome')?.hasError('required')"
         >Nome obrigatório</mat-error
       >
     </mat-form-field>
     <mat-form-field appearance="outline">
-      <mat-label>CPF</mat-label>
-      <input matInput formControlName="cpf" required mask="000.000.000-00" />
-      <mat-error *ngIf="clientForm.get('cpf')?.hasError('required')"
-        >CPF obrigatório</mat-error
+      <mat-label>Sobrenome</mat-label>
+      <input 
+        matInput 
+        formControlName="sobrenome" 
+        required
+      />
+      <mat-error *ngIf="clientForm.get('sobrenome')?.hasError('required')"
+        >Sobrenome obrigatório</mat-error
       >
     </mat-form-field>
   </div>
@@ -65,6 +69,7 @@
         formControlName="cep"
         required
         mask="00000-000"
+        [dropSpecialCharacters]="true"
         (blur)="buscarCep()"
       />
       <mat-error *ngIf="clientForm.get('cep')?.hasError('required')"
@@ -79,10 +84,16 @@
       >
     </mat-form-field>
     <mat-form-field appearance="outline">
-      <mat-label>Cidade</mat-label>
-      <input matInput formControlName="cidade" required />
-      <mat-error *ngIf="clientForm.get('cidade')?.hasError('required')"
-        >Cidade obrigatória</mat-error
+      <mat-label>Número da Rua</mat-label>
+      <input 
+        matInput 
+        formControlName="numeroEndereco" 
+        required 
+        type="number"
+        placeholder="Ex: 123"
+      />
+      <mat-error *ngIf="clientForm.get('numeroEndereco')?.hasError('required')"
+        >Número da rua obrigatório</mat-error
       >
     </mat-form-field>
   </div>
@@ -112,9 +123,47 @@
         formControlName="contato"
         required
         mask="(00) 00000-0000"
+        [dropSpecialCharacters]="false"
       />
       <mat-error *ngIf="clientForm.get('contato')?.hasError('required')"
         >Contato obrigatório</mat-error
+      >
+    </mat-form-field>
+  </div>
+  <div class="form-row">
+    <mat-form-field appearance="outline">
+      <mat-label>Cidade</mat-label>
+      <input matInput formControlName="cidade" required />
+      <mat-error *ngIf="clientForm.get('cidade')?.hasError('required')"
+        >Cidade obrigatória</mat-error
+      >
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>E-mail</mat-label>
+      <input
+        matInput
+        formControlName="email"
+        required
+        type="email"
+      />
+      <mat-error *ngIf="clientForm.get('email')?.hasError('required')"
+        >E-mail obrigatório</mat-error
+      >
+      <mat-error *ngIf="clientForm.get('email')?.hasError('email')"
+        >E-mail inválido</mat-error
+      >
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>CPF</mat-label>
+      <input 
+        matInput 
+        formControlName="cpf" 
+        required 
+        mask="000.000.000-00" 
+        [dropSpecialCharacters]="false" 
+      />
+      <mat-error *ngIf="clientForm.get('cpf')?.hasError('required')"
+        >CPF obrigatório</mat-error
       >
     </mat-form-field>
   </div>

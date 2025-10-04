@@ -17,8 +17,18 @@ export class ClientService {
     return this.http.get<ClientApiInterface>(url);
   }
 
-  createClient(client: ClientInterface): Observable<ClientInterface> {
+  createClient(client: Omit<ClientInterface, '_id' | 'customerId' | 'createdAt' | 'updatedAt'>): Observable<ClientInterface> {
     const url: string = `${this.urlBackEnd}/client`;
     return this.http.post<ClientInterface>(url, client);
+  }
+
+  getClientById(id: string): Observable<ClientApiInterface> {
+    const url: string = `${this.urlBackEnd}/client/${id}`;
+    return this.http.get<ClientApiInterface>(url);
+  }
+
+  getClientByCpf(cpf: string): Observable<ClientInterface> {
+    const url: string = `${this.urlBackEnd}/client/cpf/${cpf}`;
+    return this.http.get<ClientInterface>(url);
   }
 }

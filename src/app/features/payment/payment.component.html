@@ -24,6 +24,7 @@
                      formControlName="cpf"
                      placeholder="000.000.000-00"
                      mask="000.000.000-00"
+                     [dropSpecialCharacters]="true"
                      maxlength="14">
               <mat-icon matSuffix>credit_card</mat-icon>
               <mat-error *ngIf="cpfFormGroup.get('cpf')?.hasError('required')">
@@ -34,6 +35,40 @@
               </mat-error>
             </mat-form-field>
           </form>
+
+          <!-- Carregamento -->
+          <div *ngIf="loadingPayments" class="loading-section">
+            <mat-spinner diameter="30"></mat-spinner>
+            <p>Buscando pagamentos pendentes...</p>
+          </div>
+
+          <!-- Pagamentos pendentes encontrados -->
+          <div *ngIf="hasSearchedPayments && pendingPayments.length > 0" class="pending-payments-section">
+            <mat-card class="pending-payments-card">
+              <mat-card-content>
+                <div class="pending-payments-info">
+                  <mat-icon class="info-icon">info</mat-icon>
+                  <div class="info-text">
+                    <h3>Pagamentos Pendentes Encontrados</h3>
+                    <p>Encontramos {{pendingPayments.length}} pagamento(s) pendente(s) em seu CPF. Continue para escolher a forma de pagamento.</p>
+                  </div>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+
+          <!-- Nenhum pagamento pendente -->
+          <div *ngIf="hasSearchedPayments && pendingPayments.length === 0" class="no-payments-section">
+            <mat-card class="no-payments-card">
+              <mat-card-content>
+                <div class="no-payments-content">
+                  <mat-icon class="success-icon">check_circle</mat-icon>
+                  <h3>Nenhum pagamento pendente</h3>
+                  <p>Não há pagamentos pendentes para este CPF.</p>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
         </div>
 
         <div class="step-actions">
@@ -59,6 +94,28 @@
           <h2>Escolha o método de pagamento</h2>
           <p>Selecione como deseja realizar o pagamento</p>
 
+          <!-- Carregamento dos dados do cliente -->
+          <div *ngIf="loadingClient" class="loading-section">
+            <mat-spinner diameter="30"></mat-spinner>
+            <p>Carregando dados do cliente...</p>
+          </div>
+
+          <!-- Informações do cliente -->
+          <div *ngIf="clientData && !loadingClient" class="client-info-section">
+            <mat-card class="client-info-card">
+              <mat-card-content>
+                <div class="client-info">
+                  <mat-icon class="client-icon">person</mat-icon>
+                  <div class="client-details">
+                    <h4>Cliente: {{ clientData.nome }}</h4>
+                    <p>CPF: {{ clientData.cpf }}</p>
+                    <p *ngIf="clientData.email">Email: {{ clientData.email }}</p>
+                  </div>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+
           <form [formGroup]="paymentMethodFormGroup" class="payment-methods">
             <div class="payment-options">
               <mat-card class="payment-option"
@@ -74,7 +131,7 @@
                 </mat-card-content>
               </mat-card>
 
-              <mat-card class="payment-option"
+              <!-- <mat-card class="payment-option"
                         [class.selected]="selectedPaymentMethod === 'card'"
                         (click)="selectPaymentMethod('card')">
                 <mat-card-content>
@@ -85,7 +142,7 @@
                   <p>Débito ou Crédito</p>
                   <span class="payment-time">Aprovação em até 2 min</span>
                 </mat-card-content>
-              </mat-card>
+              </mat-card> -->
 
               <mat-card class="payment-option"
                         [class.selected]="selectedPaymentMethod === 'boleto'"
@@ -110,11 +167,12 @@
           </button>
           <button mat-raised-button
                   color="primary"
-                  [disabled]="!paymentMethodFormGroup.valid"
+                  [disabled]="!paymentMethodFormGroup.valid || processingPayment || loadingClient"
                   (click)="nextStep()"
                   class="continue-btn">
-            <mat-icon>arrow_forward</mat-icon>
-            Continuar
+            <mat-spinner *ngIf="processingPayment" diameter="20" style="margin-right: 8px;"></mat-spinner>
+            <mat-icon *ngIf="!processingPayment">arrow_forward</mat-icon>
+            {{ processingPayment ? 'Processando...' : 'Continuar' }}
           </button>
         </div>
       </mat-step>
