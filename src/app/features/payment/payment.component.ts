@@ -2,7 +2,13 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatStepper } from '@angular/material/stepper';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { PaymentService } from '../../core/payment.service';
+import { ClientService } from '../../core/client.service';
+import { PaymentData } from '../../utils/payment/paymentInterface';
+import ClientInterface from '../../utils/client/clientInterface';
 import * as QRCode from 'qrcode';
+import { PaymentApiInterface } from '../../utils/payment/paymentApiInterface';
+import ClientApiInterface from '../../utils/client/clientApiInterface';
 
 @Component({
   selector: 'app-payment',
@@ -19,10 +25,19 @@ export class PaymentComponent implements OnInit {
   qrCodeSvg: string = '';
   pixCode: string = '';
   boletoCode: string = '';
+  pendingPayments: PaymentData[] = [];
+  loadingPayments: boolean = false;
+  hasSearchedPayments: boolean = false;
+  clientData: ClientInterface | null = null;
+  loadingClient: boolean = false;
+  processingPayment: boolean = false;
+  paymentResponse: any = null;
 
   constructor(
     private formBuilder: FormBuilder,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private paymentService: PaymentService,
+    private clientService: ClientService
   ) {}
 
   ngOnInit(): void {
@@ -38,6 +53,11 @@ export class PaymentComponent implements OnInit {
 
     this.paymentMethodFormGroup = this.formBuilder.group({
       paymentMethod: ['', Validators.required]
+    });
+
+    // Observar mudanças no CPF para buscar pagamentos pendentes
+    this.cpfFormGroup.get('cpf')?.valueChanges.subscribe(cpf => {
+      this.onCpfChange(cpf);
     });
   }
 
@@ -73,12 +93,55 @@ export class PaymentComponent implements OnInit {
     return null;
   }
 
+  // Método chamado quando o CPF muda
+  private onCpfChange(cpf: string): void {
+    // Reset do estado
+    this.pendingPayments = [];
+    this.hasSearchedPayments = false;
+
+    if (!cpf) return;
+
+    // Remove formatação do CPF
+    const cleanCpf = cpf.replace(/\D/g, '');
+    
+    // Só busca se CPF tem 11 dígitos e é válido
+    if (cleanCpf.length === 11 && !this.cpfValidator({ value: cpf })) {
+      this.searchPendingPayments(cleanCpf);
+    }
+  }
+
+  // Buscar pagamentos pendentes
+  private searchPendingPayments(cpf: string): void {
+    this.loadingPayments = true;
+    
+    this.paymentService.getBoletosByCpf(cpf).subscribe({
+      next: (payments: PaymentApiInterface) => {
+        this.pendingPayments = payments.data;
+        this.hasSearchedPayments = true;
+        this.loadingPayments = false;
+        
+        if (payments.data.length > 0) {
+          this.showSnackBar(`Encontrados ${payments.data.length} pagamento(s) pendente(s)`);
+        } else {
+          this.showSnackBar('Nenhum pagamento pendente encontrado');
+        }
+      },
+      error: (error) => {
+        this.loadingPayments = false;
+        this.hasSearchedPayments = true;
+        console.error('Erro ao buscar pagamentos:', error);
+        this.showSnackBar('Erro ao buscar pagamentos pendentes');
+      }
+    });
+  }
+
   nextStep(): void {
     if (this.stepper.selectedIndex === 0 && this.cpfFormGroup.valid) {
+      // Buscar dados do cliente ao entrar na etapa de pagamento
+      this.getClientData();
       this.stepper.next();
     } else if (this.stepper.selectedIndex === 1 && this.paymentMethodFormGroup.valid) {
-      this.generatePaymentContent();
-      this.stepper.next();
+      this.processPayment();
     }
   }
 
@@ -89,11 +152,27 @@ export class PaymentComponent implements OnInit {
   selectPaymentMethod(method: string): void {
     this.selectedPaymentMethod = method;
     this.paymentMethodFormGroup.patchValue({ paymentMethod: method });
+    
+    // Buscar dados do cliente se ainda não temos
+    if (!this.clientData) {
+      this.getClientData();
+    }
   }
 
-  private async generatePaymentContent(): Promise<void> {
+  private processPayment(): void {
+    if (!this.clientData) {
+      this.showSnackBar('Erro: Dados do cliente não encontrados');
+      return;
+    }
+
+    this.processingPayment = true;
+    
+    const paymentData = this.buildPaymentData();
+    
     if (this.selectedPaymentMethod === 'pix') {
-      await this.generateQRCode();
+      this.createPixPayment(paymentData);
+    } else if (this.selectedPaymentMethod === 'boleto') {
+      this.createBoletoPayment(paymentData);
     }
   }
 
@@ -163,6 +242,127 @@ export class PaymentComponent implements OnInit {
     } else if (this.selectedPaymentMethod === 'boleto') {
       this.showSnackBar('Boleto gerado com sucesso!');
     }
+  }
+
+  // Buscar dados do cliente por ID
+  private getClientData(): void {
+    if (this.loadingClient || this.clientData) return;
+
+    // Buscar socio_id dos pagamentos pendentes ou usar CPF como fallback
+    let clientId = '';
+    
+    if (this.pendingPayments.length > 0 && this.pendingPayments[0].socio_id) {
+      clientId = this.pendingPayments[0].socio_id;
+      console.log('Buscando cliente por socio_id:', clientId);
+    } else {
+      const cpf = this.cpfFormGroup.get('cpf')?.value;
+      if (!cpf) return;
+      clientId = cpf.replace(/\D/g, ''); // Remove formatação do CPF como fallback
+      console.log('Buscando cliente por CPF (fallback):', clientId);
+    }
+    
+    this.loadingClient = true;
+    
+    this.clientService.getClientById(clientId).subscribe({
+      next: (client: ClientApiInterface) => {
+        this.clientData = Array.isArray(client.data) ? client.data[0] : client.data;
+        this.loadingClient = false;
+        console.log('Dados do cliente carregados:', client);
+      },
+      error: (error) => {
+        this.loadingClient = false;
+        this.showSnackBar('Cliente não encontrado. Você pode continuar com o pagamento.');
+      }
+    });
+  }
+
+  // Construir dados do pagamento baseado no cliente
+  private buildPaymentData(): any {
+    if (!this.clientData) return null;
+
+    const [firstName, ...lastNameParts] = this.clientData.nome.split(' ');
+    const lastName = lastNameParts.join(' ') || 'Silva';
+
+    const basePayment = {
+      amount: 120.00,
+      description: "Mensalidade do plano",
+      payer: {
+        email: this.clientData.email || 'cliente@email.com',
+        first_name: firstName || 'Cliente',
+        last_name: lastName,
+        identification: {
+          type: "CPF",
+          number: this.clientData.cpf
+        }
+      }
+    };
+
+    // Para boleto, adicionar endereço
+    if (this.selectedPaymentMethod === 'boleto') {
+      return {
+        ...basePayment,
+        payer: {
+          ...basePayment.payer,
+          address: {
+            zip_code: this.clientData.cep?.replace(/\D/g, '') || "00000000",
+            street_name: this.clientData.endereco || "Rua Exemplo",
+            street_number: this.clientData.numeroRua || "123",
+            neighborhood: "Centro",
+            city: "São Paulo",
+            federal_unit: "SP"
+          }
+        }
+      };
+    }
+
+    return basePayment;
+  }
+
+  // Criar pagamento PIX
+  private createPixPayment(paymentData: any): void {
+    this.paymentService.createPixPayment(paymentData).subscribe({
+      next: (response) => {
+        this.paymentResponse = response;
+        this.processingPayment = false;
+        
+        // Se a resposta contém o QR code, usar ele
+        if (response.qr_code) {
+          this.pixCode = response.qr_code;
+          this.generateQRCode();
+        }
+        
+        this.stepper.next();
+        this.showSnackBar('Pagamento PIX criado com sucesso!');
+      },
+      error: (error) => {
+        this.processingPayment = false;
+        console.error('Erro ao criar pagamento PIX:', error);
+        this.showSnackBar('Erro ao criar pagamento PIX. Tente novamente.');
+      }
+    });
+  }
+
+  // Criar pagamento Boleto
+  private createBoletoPayment(paymentData: any): void {
+    this.paymentService.createBoletoPayment(paymentData).subscribe({
+      next: (response) => {
+        this.paymentResponse = response;
+        this.processingPayment = false;
+        
+        // Se a resposta contém o código do boleto, usar ele
+        if (response.external_reference || response.id) {
+          this.boletoCode = response.external_reference || response.id.toString();
+        }
+        
+        this.stepper.next();
+        this.showSnackBar('Boleto criado com sucesso!');
+      },
+      error: (error) => {
+        this.processingPayment = false;
+        console.error('Erro ao criar boleto:', error);
+        this.showSnackBar('Erro ao criar boleto. Tente novamente.');
+      }
+    });
   }
 
   private showSnackBar(message: string): void {

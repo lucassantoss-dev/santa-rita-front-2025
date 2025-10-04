@@ -71,11 +71,11 @@ export class SidenavComponent implements OnInit {
         route: 'dashboard/profile'
       });
 
-      items.push({
-        icon: 'settings',
-        label: 'Configurações',
-        route: 'dashboard/configurations'
-      });
+      // items.push({
+      //   icon: 'settings',
+      //   label: 'Configurações',
+      //   route: 'dashboard/configurations'
+      // });
 
       // Divider antes do logout
       items.push({

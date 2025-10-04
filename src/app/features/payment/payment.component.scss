@@ -679,6 +679,48 @@
   animation: fadeInUp 0.3s ease-out;
 }
 
+// Estilos para informações do cliente
+.client-info-section {
+  margin: 20px 0;
+  animation: fadeInUp 0.4s ease-out;
+}
+
+.client-info-card {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  
+  .client-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    
+    .client-icon {
+      color: #56d337;
+      font-size: 32px;
+      width: 32px;
+      height: 32px;
+    }
+    
+    .client-details {
+      flex: 1;
+      
+      h4 {
+        margin: 0 0 8px 0;
+        color: #333;
+        font-size: 1.1rem;
+        font-weight: 600;
+      }
+      
+      p {
+        margin: 4px 0;
+        color: #666;
+        font-size: 0.9rem;
+      }
+    }
+  }
+}
+
 .payment-option {
   animation: fadeInUp 0.3s ease-out;
 
@@ -688,6 +730,143 @@
 
   &:nth-child(3) {
     animation-delay: 0.2s;
+  }
+}
+
+// Estilos para seção de pagamentos pendentes
+.loading-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  margin-top: 20px;
+  
+  p {
+    margin-top: 10px;
+    color: #666;
+    font-size: 14px;
+  }
+}
+
+.pending-payments-section {
+  margin-top: 20px;
+  animation: fadeInUp 0.4s ease-out;
+}
+
+.pending-payments-card {
+  background: #e3f2fd;
+  border: 1px solid #bbdefb;
+  border-radius: 8px;
+  
+  .pending-payments-info {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    
+    .info-icon {
+      color: #1976d2;
+      font-size: 28px;
+      width: 28px;
+      height: 28px;
+      margin-top: 4px;
+    }
+    
+    .info-text {
+      flex: 1;
+      
+      h3 {
+        margin: 0 0 8px 0;
+        color: #1565c0;
+        font-size: 1.1rem;
+        font-weight: 600;
+      }
+      
+      p {
+        margin: 0;
+        color: #424242;
+        line-height: 1.5;
+      }
+    }
+  }
+}
+
+.payment-list {
+  margin-top: 16px;
+}
+
+.payment-item {
+  margin-bottom: 12px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  
+  .payment-info {
+    margin-bottom: 16px;
+  }
+  
+  .payment-detail {
+    margin-bottom: 8px;
+    
+    strong {
+      color: #333;
+      margin-right: 8px;
+    }
+    
+    .payment-value {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #2e7d32;
+    }
+    
+    .overdue {
+      color: #d32f2f;
+      font-weight: 600;
+    }
+  }
+  
+  .payment-actions {
+    text-align: right;
+    
+    button {
+      background: #56d337;
+      color: white;
+      border: none;
+      
+      &:hover {
+        background: #4caf50;
+      }
+    }
+  }
+}
+
+.no-payments-section {
+  margin-top: 20px;
+  animation: fadeInUp 0.4s ease-out;
+}
+
+.no-payments-card {
+  background: #d4edda;
+  border: 1px solid #c3e6cb;
+  border-radius: 8px;
+}
+
+.no-payments-content {
+  text-align: center;
+  padding: 20px;
+  
+  .success-icon {
+    font-size: 48px;
+    color: #28a745;
+    margin-bottom: 16px;
+  }
+  
+  h3 {
+    color: #155724;
+    margin-bottom: 8px;
+  }
+  
+  p {
+    color: #155724;
+    margin: 0;
   }
 }
 

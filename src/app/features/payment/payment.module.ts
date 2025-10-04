@@ -10,6 +10,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 // ngx-mask para formatação de CPF
 import { NgxMaskDirective, NgxMaskPipe, provideNgxMask } from 'ngx-mask';
@@ -34,6 +35,7 @@ import { PaymentComponent } from './payment.component';
     MatIconModule,
     MatCardModule,
     MatSnackBarModule,
+    MatProgressSpinnerModule,
 
     // ngx-mask
     NgxMaskDirective,

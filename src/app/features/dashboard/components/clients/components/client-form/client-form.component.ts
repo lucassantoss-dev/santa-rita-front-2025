@@ -67,7 +67,8 @@ export class ClientFormComponent implements OnInit {
   }
 
   buscarCep() {
-    const cep = this.clientForm.get('cep')?.value?.replace(/\D/g, '');
+    const cepValue = this.clientForm.get('cep')?.value;
+    const cep = cepValue?.replace(/\D/g, '');
     if (cep && cep.length === 8) {
       this.loadingCep = true;
       this.http.get<any>(`/viacep/ws/${cep}/json/`).subscribe({
@@ -93,8 +94,24 @@ export class ClientFormComponent implements OnInit {
 
   onSubmit() {
     if (this.clientForm.valid) {
+      const formValue = this.clientForm.value;
       const payload = {
-        ...this.clientForm.value,
+        quadra: formValue.quadra,
+        numero: formValue.numero,
+        complemento: formValue.complemento,
+        tipo: formValue.tipo,
+        nome: formValue.nome,
+        cpf: formValue.cpf,
+        endereco: formValue.rua,
+        numeroRua: formValue.numeroRua,
+        bairro: formValue.bairro,
+        cidade: formValue.cidade,
+        estado: formValue.estado,
+        contato: formValue.contato,
+        numeroEndereco: formValue.numeroEndereco,
+        sobrenome: formValue.sobrenome,
+        email: formValue.email,
+        cep: formValue.cep,
         situacao: "Ativo"
       }
       this.clientService.createClient(payload).subscribe({
@@ -128,16 +145,19 @@ export class ClientFormComponent implements OnInit {
     this.clientForm = this.fb.group({
       quadra: ['', Validators.required],
       complemento: ['', Validators.required],
-      numero: [null, [Validators.required, Validators.pattern('^[0-9]+$')]],
+      numero: ['', [Validators.required, Validators.pattern('^[0-9]+$')]],
       tipo: ['', Validators.required],
       nome: ['', Validators.required],
+      sobrenome: ['', Validators.required],
       cpf: ['', Validators.required],
       cep: ['', Validators.required],
       rua: ['', Validators.required],
+      numeroEndereco: ['', [Validators.required, Validators.pattern('^[0-9]+$')]],
       cidade: ['', Validators.required],
       bairro: ['', Validators.required],
       estado: ['', Validators.required],
-      contato: ['', Validators.required]
+      contato: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email, Validators.pattern(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/)]]
     });
   }
 }

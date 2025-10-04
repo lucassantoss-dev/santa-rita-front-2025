@@ -81,7 +81,7 @@ export class QuickPaymentComponent implements OnInit {
 
       console.log('Dados do pagamento recorrente:', paymentData);
 
-      this.paymentService.createRecurringPayment(selectedClient._id, paymentData).subscribe({
+      this.paymentService.createRecurringPayment(selectedClient._id as string, paymentData).subscribe({
         next: (response) => {
           const paymentInfo = `${selectedClient.nome} - R$ ${formData.valor}`;
 
