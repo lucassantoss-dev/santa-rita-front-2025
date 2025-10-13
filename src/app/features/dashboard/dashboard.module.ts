@@ -18,6 +18,7 @@ import { NgxMaskDirective, NgxMaskPipe, provideNgxMask } from 'ngx-mask';
 import { ProfileComponent } from './components/profile/profile.component';
 import { ConfigurationsComponent } from './components/configurations/configurations.component';
 import { ClientPlanAssociationComponent } from './components/clients/components/client-plan-association/client-plan-association.component';
+import { PlansComponent } from './components/plans/plans.component';
 
 @NgModule({
   declarations: [
@@ -33,7 +34,8 @@ import { ClientPlanAssociationComponent } from './components/clients/components/
     LoadingComponent,
     ConfigurationsComponent,
     ProfileComponent,
-    ClientPlanAssociationComponent
+    ClientPlanAssociationComponent,
+    PlansComponent
   ],
   imports: [
     CommonModule,

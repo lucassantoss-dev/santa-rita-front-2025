@@ -6,6 +6,9 @@ import { ClientService } from '../../../../../../core/client.service';
 import { PopupService } from '../../../../../../shared/popup/popup.service';
 import { ActivityService } from '../../../../../../core/activity.service';
 import { DashboardService } from '../../../../../../core/dashboard.service';
+import { ActivatedRoute } from '@angular/router';
+import ClientApiInterface from '../../../../../../utils/client/clientApiInterface';
+import ClientObjectInterface from '../../../../../../utils/client/clientObjectInterface';
 
 @Component({
   selector: 'app-client-form',
@@ -14,11 +17,14 @@ import { DashboardService } from '../../../../../../core/dashboard.service';
 })
 export class ClientFormComponent implements OnInit {
   clientForm!: FormGroup;
-  quadras = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+  id!: string | null;
+  edit: boolean = false;
+  quadras = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
   tipos = [
     'Canteiro',
     'Túmulo 1 Gaveta',
     'Túmulo 2 Gaveta',
+    'Túmulo 3 Gaveta',
     'Túmulo 4 Gaveta'
   ];
   estados = [
@@ -59,11 +65,45 @@ export class ClientFormComponent implements OnInit {
     private clientService: ClientService,
     private popupService: PopupService,
     private activityService: ActivityService,
-    private dashboardService: DashboardService
-  ) {}
+    private dashboardService: DashboardService,
+    private router: ActivatedRoute,
+  ) {
+    this.id = this.router.snapshot.paramMap.get('id');
+  }
 
   ngOnInit(): void {
     this.initializeForm();
+    if (this.id) {
+      this.edit = true;
+      this.getClientById(this.id);
+    }
+  }
+
+  getClientById(id: string) {
+    this.clientService.getClientById(id).subscribe({
+      next: (data: ClientObjectInterface) => {
+        this.clientForm.patchValue({
+          quadra: data.data.quadra,
+          numero: data.data.numero,
+          complemento: data.data.complemento,
+          tipo: data.data.tipo,
+          nome: data.data.nome,
+          cpf: data.data.cpf,
+          rua: data.data.endereco,
+          numeroRua: data.data.numeroRua,
+          bairro: data.data.bairro,
+          cidade: data.data.cidade,
+          estado: data.data.estado,
+          contato: data.data.contato,
+          numeroEndereco: data.data.numeroEndereco,
+          sobrenome: data.data.sobrenome,
+          email: data.data.email,
+          cep: data.data.cep,
+        })
+      }, error: (err: Error) => {
+        this.popupService.showErrorMessage('Erro ao carregar dados do cliente. ' + err.message);
+      }
+    })
   }
 
   buscarCep() {
@@ -88,7 +128,7 @@ export class ClientFormComponent implements OnInit {
         }
       });
     } else {
-      console.log('CEP inválido ou incompleto:', cep);
+      this.popupService.showErrorMessage('CEP inválido ou incompleto');
     }
   }
 
@@ -157,7 +197,7 @@ export class ClientFormComponent implements OnInit {
       bairro: ['', Validators.required],
       estado: ['', Validators.required],
       contato: ['', Validators.required],
-      email: ['', [Validators.required, Validators.email, Validators.pattern(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/)]]
+      email: ['', [Validators.email, Validators.pattern(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/)]]
     });
   }
 }

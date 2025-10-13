@@ -10,7 +10,8 @@ export interface PaymentData {
   bairro: string;
   cidade: string;
   paymentDate?: Date;
-  status: 'pending' | 'pago' | 'vencido' | 'cancelado';
+  paymentDetails?: PaymentDetails;
+  status: 'pending' | 'paid' | 'overdue' | 'cancelled';
   estado: string;
   contato: string;
   secretario: string;
@@ -19,6 +20,32 @@ export interface PaymentData {
   createdAt: Date;
   updatedAt: Date;
   vencimento: string;
+}
+
+interface PaymentDetails {
+  createdAt: Date;
+  paymentId: string;
+  type: string;
+  _id?: string;
+  payload: Payload;
+  paymentMethod: string;
+}
+
+interface Payload {
+    id: number,
+    status: string,
+    status_detail: string,
+    description: string,
+    transaction_amount: number,
+    payment_method_id: string,
+    date_created: string,
+    date_of_expiration: string,
+    qr_code: string,
+    qr_code_base64: string,
+    ticket_url: string,
+    barcode?: string;
+    external_resource_url?: string;
+    digitable_line?: string;
 }
 
 export interface PaymentPlan {

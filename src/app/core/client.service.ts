@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import ClientApiInterface from '../utils/client/clientApiInterface';
 import ClientInterface from '../utils/client/clientInterface';
+import ClientObjectInterface from '../utils/client/clientObjectInterface';
 
 @Injectable({
   providedIn: 'root'
@@ -22,13 +23,18 @@ export class ClientService {
     return this.http.post<ClientInterface>(url, client);
   }
 
-  getClientById(id: string): Observable<ClientApiInterface> {
+  getClientById(id: string): Observable<ClientObjectInterface> {
     const url: string = `${this.urlBackEnd}/client/${id}`;
-    return this.http.get<ClientApiInterface>(url);
+    return this.http.get<ClientObjectInterface>(url);
   }
 
   getClientByCpf(cpf: string): Observable<ClientInterface> {
     const url: string = `${this.urlBackEnd}/client/cpf/${cpf}`;
     return this.http.get<ClientInterface>(url);
+  }
+
+  removeClient(clientId: string): Observable<ClientInterface> {
+    const url: string = `${this.urlBackEnd}/client/${clientId}`;
+    return this.http.delete<ClientInterface>(url);
   }
 }

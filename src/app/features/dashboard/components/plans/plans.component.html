@@ -1,0 +1,275 @@
+<div class="plans-container">
+  <!-- Header da Página -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="title-section">
+        <h1 class="page-title">
+          <mat-icon>subscriptions</mat-icon>
+          Gestão de Planos
+        </h1>
+        <p class="page-subtitle">Gerencie todos os planos de pagamento do cemitério</p>
+      </div>
+      <div class="header-actions">
+        <button mat-raised-button class="primary-action-btn" (click)="openCreateForm()">
+          <mat-icon>add</mat-icon>
+          Novo Plano
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estatísticas Rápidas -->
+  <div class="stats-grid">
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content total">
+          <div class="stat-icon">
+            <mat-icon>subscriptions</mat-icon>
+          </div>
+          <div class="stat-info">
+            <h3>{{ stats.totalPlans }}</h3>
+            <p>Total de Planos</p>
+            <span class="amount">{{ formatCurrency(stats.totalRevenue) }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content active">
+          <div class="stat-icon">
+            <mat-icon>check_circle</mat-icon>
+          </div>
+          <div class="stat-info">
+            <h3>{{ stats.activePlans }}</h3>
+            <p>Planos Ativos</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content inactive">
+          <div class="stat-icon">
+            <mat-icon>pause_circle</mat-icon>
+          </div>
+          <div class="stat-info">
+            <h3>{{ stats.inactivePlans }}</h3>
+            <p>Planos Inativos</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content average">
+          <div class="stat-icon">
+            <mat-icon>trending_up</mat-icon>
+          </div>
+          <div class="stat-info">
+            <h3>{{ formatCurrency(stats.averagePlanValue) }}</h3>
+            <p>Valor Médio</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Seção de Filtros -->
+  <mat-card class="filters-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>filter_list</mat-icon>
+        Filtros de Pesquisa
+      </mat-card-title>
+      <button mat-icon-button (click)="toggleFilters()" class="toggle-filters-btn">
+        <mat-icon>{{filtersExpanded ? 'expand_less' : 'expand_more'}}</mat-icon>
+      </button>
+    </mat-card-header>
+    <mat-card-content [@expandCollapse]="filtersExpanded ? 'expanded' : 'collapsed'">
+      <div class="filters-grid">
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Pesquisar Plano</mat-label>
+          <input matInput [(ngModel)]="searchValue" (input)="onSearchChange()" placeholder="Nome do plano, descrição...">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Filtro</mat-label>
+          <mat-select [(value)]="selectedFilter" (selectionChange)="onFilterChange()">
+            <mat-option *ngFor="let option of filterOptions" [value]="option.value">
+              {{ option.label }}
+            </mat-option>
+          </mat-select>
+          <mat-icon matSuffix>filter_alt</mat-icon>
+        </mat-form-field>
+      </div>
+
+      <div class="filters-actions">
+        <button mat-raised-button color="primary" (click)="onSearch()" class="filter-btn">
+          <mat-icon>search</mat-icon>
+          Pesquisar
+        </button>
+        <button mat-stroked-button (click)="clearFilters()" class="filter-btn">
+          <mat-icon>clear</mat-icon>
+          Limpar Filtros
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Carregando planos...</p>
+  </div>
+
+  <!-- Resultados e Tabela -->
+  <mat-card *ngIf="!loading" class="results-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>list</mat-icon>
+        Resultados da Pesquisa
+      </mat-card-title>
+      <div class="results-info">
+        <span class="results-count">{{ dataSource.data.length }} planos</span>
+      </div>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="table-view">
+        <div class="table-wrapper">
+          <table mat-table [dataSource]="dataSource" class="modern-table" matSort>
+            <!-- Coluna de Nome do Plano -->
+            <ng-container matColumnDef="planName">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Plano</th>
+              <td mat-cell *matCellDef="let plan" class="plan-cell">
+                <div class="plan-info">
+                  <h4>{{ plan.name }}</h4>
+                  <p>ID: {{ plan.id }}</p>
+                  <div class="plan-tags">
+                    <span class="currency-tag">{{ plan.currency }}</span>
+                  </div>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Coluna de Descrição -->
+            <ng-container matColumnDef="description">
+              <th mat-header-cell *matHeaderCellDef>Descrição</th>
+              <td mat-cell *matCellDef="let plan" class="description-cell">
+                <span>{{ plan.description }}</span>
+              </td>
+            </ng-container>
+
+            <!-- Coluna de Valor -->
+            <ng-container matColumnDef="amount">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Valor</th>
+              <td mat-cell *matCellDef="let plan" class="amount-cell">
+                <strong>{{ formatCurrency(plan.amount) }}</strong>
+              </td>
+            </ng-container>
+
+            <!-- Coluna de Frequência -->
+            <ng-container matColumnDef="frequency">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Frequência</th>
+              <td mat-cell *matCellDef="let plan" class="frequency-cell">
+                <span class="frequency-badge" [ngClass]="getFrequencyClass(plan.interval)">
+                  {{ getFrequencyLabel(plan.interval) }}
+                </span>
+              </td>
+            </ng-container>
+
+            <!-- Coluna de Status -->
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef>Status</th>
+              <td mat-cell *matCellDef="let plan" class="status-cell">
+                <span class="status-badge active">
+                  Ativo
+                </span>
+              </td>
+            </ng-container>
+
+            <!-- Coluna de Ações -->
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Ações</th>
+              <td mat-cell *matCellDef="let plan" class="actions-cell">
+                <div class="actions-container">
+                  <button mat-icon-button class="action-btn edit-btn"
+                          title="Editar plano"
+                          (click)="openEditForm(plan)">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+
+                  <button mat-icon-button class="action-btn toggle-btn"
+                          title="Ativar/Desativar plano"
+                          (click)="togglePlanStatus(plan)">
+                    <mat-icon>toggle_on</mat-icon>
+                  </button>
+
+                  <button mat-icon-button class="action-btn delete-btn"
+                          title="Excluir plano"
+                          (click)="deletePlan(plan)">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
+          </table>
+
+          <!-- Estado vazio -->
+          <div *ngIf="dataSource.data.length === 0" class="empty-state">
+            <mat-icon>subscriptions</mat-icon>
+            <h3>Nenhum plano encontrado</h3>
+            <p>Não há planos que correspondam aos filtros selecionados.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Paginação -->
+      <div *ngIf="!loading && dataSource.data.length > 0" class="pagination-container">
+        <mat-paginator
+          [length]="dataSource.data.length"
+          [pageSize]="pageSize"
+          [pageIndex]="pageIndex"
+          [pageSizeOptions]="pageSizeOptions"
+          [showFirstLastButtons]="true"
+          (page)="onPageChange($event)">
+        </mat-paginator>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Modal do Formulário -->
+  <div *ngIf="showCreateForm" class="form-overlay" (click)="closeCreateForm()">
+    <div class="form-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ editingPlan ? 'Editar Plano' : 'Novo Plano' }}</h2>
+        <button mat-icon-button class="close-button" (click)="closeCreateForm()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      <div class="modal-content">
+        <div class="form-placeholder">
+          <p>Formulário de plano será implementado aqui.</p>
+          <p>Incluirá campos para nome, descrição, valor, frequência, etc.</p>
+          <div class="form-actions">
+            <button mat-raised-button class="primary-btn" (click)="savePlan()">
+              <mat-icon>save</mat-icon>
+              {{ editingPlan ? 'Salvar Alterações' : 'Criar Plano' }}
+            </button>
+            <button mat-stroked-button class="secondary-btn" (click)="closeCreateForm()">
+              <mat-icon>cancel</mat-icon>
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

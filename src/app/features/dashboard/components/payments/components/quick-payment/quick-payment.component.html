@@ -2,7 +2,7 @@
   <div class="modal-header">
     <h2 mat-dialog-title>
       <mat-icon>flash_on</mat-icon>
-      Criação Rápida de Pagamento
+      Criação Rápida de Recorrência
     </h2>
     <button mat-icon-button mat-dialog-close class="close-button">
       <mat-icon>close</mat-icon>
@@ -26,6 +26,44 @@
           {{ getFieldError('clientId') }}
         </mat-error>
       </mat-form-field>
+
+      <!-- Tipo de Recebimento -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Tipo de Recebimento *</mat-label>
+        <mat-select formControlName="tipoRecebimento">
+          <mat-option *ngFor="let tipo of tipoRecebimentoOptions" [value]="tipo.value">
+            {{ tipo.label }}
+          </mat-option>
+        </mat-select>
+        <mat-icon matSuffix>payment</mat-icon>
+        <mat-error *ngIf="isFieldInvalid('tipoRecebimento')">
+          {{ getFieldError('tipoRecebimento') }}
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Status de Pagamentos Pendentes -->
+      <div class="pending-payments-status" *ngIf="quickPaymentForm.get('clientId')?.value">
+        <div *ngIf="loadingPendingPayments" class="loading-message">
+          <mat-spinner diameter="20"></mat-spinner>
+          <span>Verificando pagamentos pendentes...</span>
+        </div>
+
+        <div *ngIf="!loadingPendingPayments && pendingPayments.length > 0" class="pending-payments-found">
+          <mat-icon color="warn">warning</mat-icon>
+          <div class="pending-info">
+            <h5>{{ pendingPayments.length }} Pagamento(s) Pendente(s) Encontrado(s)</h5>
+            <p>Os dados do primeiro pagamento pendente foram preenchidos automaticamente.</p>
+            <div class="pending-payment-details">
+              <span><strong>Valor:</strong> {{ pendingPayments[0]?.valor | currency:'BRL' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="!loadingPendingPayments && pendingPayments.length === 0 && quickPaymentForm.get('clientId')?.value" class="no-pending-payments">
+          <mat-icon color="primary">check_circle</mat-icon>
+          <span>Nenhum pagamento pendente encontrado para este cliente.</span>
+        </div>
+      </div>
 
       <!-- Linha com Valor e Dia do Vencimento -->
       <div class="form-row">
@@ -126,7 +164,7 @@
             (click)="onSubmit()" [disabled]="isLoading || quickPaymentForm.invalid">
       <mat-spinner diameter="20" *ngIf="isLoading"></mat-spinner>
       <mat-icon *ngIf="!isLoading">flash_on</mat-icon>
-      {{ isLoading ? 'Criando...' : 'Criar Pagamento' }}
+      {{ isLoading ? 'Criando...' : 'Criar Recorrência' }}
     </button>
   </div>
 </div>

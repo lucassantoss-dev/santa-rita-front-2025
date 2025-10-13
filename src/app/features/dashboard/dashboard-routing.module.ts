@@ -9,6 +9,7 @@ import { PaymentFormComponent } from './components/payments/components/payment-f
 import { PlanComponent } from './components/payments/components/plan/plan.component';
 import { ConfigurationsComponent } from './components/configurations/configurations.component';
 import { ProfileComponent } from './components/profile/profile.component';
+import { PlansComponent } from './components/plans/plans.component';
 
 const routes: Routes = [
   {
@@ -55,6 +56,10 @@ const routes: Routes = [
       {
         path: 'profile',
         component: ProfileComponent
+      },
+      {
+        path: 'plans',
+        component: PlansComponent
       },
       {
         path: '**',

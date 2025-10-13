@@ -3,6 +3,7 @@ import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms'
 import { LoginService } from '../../../../core/login.service';
 import { Router } from '@angular/router';
 import { LocalStorageService } from '../../../../core/local-storage.service';
+import { PopupService } from '../../../../shared/popup/popup.service';
 
 @Component({
 	selector: 'app-login-form',
@@ -21,7 +22,8 @@ export class LoginFormComponent implements OnInit {
 		private formBuilder: FormBuilder,
 		private loginService: LoginService,
 		private localStorage: LocalStorageService,
-		private router: Router
+		private router: Router,
+    private popupService: PopupService
 	) { }
 
 	ngOnInit(): void {
@@ -34,10 +36,9 @@ export class LoginFormComponent implements OnInit {
 	handleLogin(): void {
 		if (this.form.valid) {
 			const formvalue = Object.assign({}, this.form.getRawValue());
-      console.log('formvalue', formvalue);
 			this.loginService.login(formvalue).subscribe({
 				next: (data: any) => {
-					console.log('realizou login!', data);
+					this.popupService.showSuccessMessage('Login realizado com sucesso!');
 					this.localStorage.setItem('token', data.data.token.token);
 					this.localStorage.setItem('user', data.data.token.user)
 					const url = `/dashboard`;

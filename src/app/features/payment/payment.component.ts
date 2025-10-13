@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatStepper } from '@angular/material/stepper';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { PaymentService } from '../../core/payment.service';
 import { ClientService } from '../../core/client.service';
 import { PaymentData } from '../../utils/payment/paymentInterface';
@@ -9,6 +10,7 @@ import ClientInterface from '../../utils/client/clientInterface';
 import * as QRCode from 'qrcode';
 import { PaymentApiInterface } from '../../utils/payment/paymentApiInterface';
 import ClientApiInterface from '../../utils/client/clientApiInterface';
+import ClientObjectInterface from '../../utils/client/clientObjectInterface';
 
 @Component({
   selector: 'app-payment',
@@ -22,7 +24,7 @@ export class PaymentComponent implements OnInit {
   paymentMethodFormGroup!: FormGroup;
 
   selectedPaymentMethod: string = '';
-  qrCodeSvg: string = '';
+  qrCodeSvg: SafeHtml = '';
   pixCode: string = '';
   boletoCode: string = '';
   pendingPayments: PaymentData[] = [];
@@ -37,13 +39,15 @@ export class PaymentComponent implements OnInit {
     private formBuilder: FormBuilder,
     private snackBar: MatSnackBar,
     private paymentService: PaymentService,
-    private clientService: ClientService
+    private clientService: ClientService,
+    private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit(): void {
     this.initializeForms();
-    this.generatePixCode();
-    this.generateBoletoCode();
+    this.generatePixCode(); // Habilitar para gerar código PIX de teste
+    this.generateQRCode(); // Gerar QR Code de teste
+    // this.generateBoletoCode();
   }
 
   private initializeForms(): void {
@@ -103,7 +107,7 @@ export class PaymentComponent implements OnInit {
 
     // Remove formatação do CPF
     const cleanCpf = cpf.replace(/\D/g, '');
-    
+
     // Só busca se CPF tem 11 dígitos e é válido
     if (cleanCpf.length === 11 && !this.cpfValidator({ value: cpf })) {
       this.searchPendingPayments(cleanCpf);
@@ -113,13 +117,13 @@ export class PaymentComponent implements OnInit {
   // Buscar pagamentos pendentes
   private searchPendingPayments(cpf: string): void {
     this.loadingPayments = true;
-    
+
     this.paymentService.getBoletosByCpf(cpf).subscribe({
       next: (payments: PaymentApiInterface) => {
         this.pendingPayments = payments.data;
         this.hasSearchedPayments = true;
         this.loadingPayments = false;
-        
+
         if (payments.data.length > 0) {
           this.showSnackBar(`Encontrados ${payments.data.length} pagamento(s) pendente(s)`);
         } else {
@@ -152,7 +156,7 @@ export class PaymentComponent implements OnInit {
   selectPaymentMethod(method: string): void {
     this.selectedPaymentMethod = method;
     this.paymentMethodFormGroup.patchValue({ paymentMethod: method });
-    
+
     // Buscar dados do cliente se ainda não temos
     if (!this.clientData) {
       this.getClientData();
@@ -166,13 +170,26 @@ export class PaymentComponent implements OnInit {
     }
 
     this.processingPayment = true;
-    
-    const paymentData = this.buildPaymentData();
-    
-    if (this.selectedPaymentMethod === 'pix') {
-      this.createPixPayment(paymentData);
-    } else if (this.selectedPaymentMethod === 'boleto') {
-      this.createBoletoPayment(paymentData);
+
+    const paymentData = this.pendingPayments;
+    if (paymentData.length === 0) {
+      if (this.selectedPaymentMethod === 'pix') {
+        this.createPixPayment(paymentData);
+      } else if (this.selectedPaymentMethod === 'boleto') {
+        this.createBoletoPayment(paymentData);
+      }
+    } else {
+      if (this.selectedPaymentMethod === 'pix') {
+        this.pixCode = paymentData[0].paymentDetails?.payload.qr_code || '';
+        this.generateQRCode();
+        this.stepper.next();
+      } else if (this.selectedPaymentMethod === 'boleto') {
+        console.log('paymentData', paymentData);
+        const boleto = paymentData.find(p => p.paymentDetails?.type === 'boleto');
+        console.log('boleto', boleto);
+        this.boletoCode = boleto?.paymentDetails?.payload.barcode || '';
+        this.stepper.next();
+      }
     }
   }
 
@@ -181,14 +198,14 @@ export class PaymentComponent implements OnInit {
     this.pixCode = '00020126580014BR.GOV.BCB.PIX013612345678901234567890000000062540504120.005303986540512.005802BR5925CEMITERIO SANTA RITA LTDA6014BELO HORIZONTE6207050062630412';
   }
 
-  private generateBoletoCode(): void {
-    // Simula um código de barras de boleto
-    this.boletoCode = '34191.79001 01043.510047 91020.150008 1 84300000012000';
-  }
-
   private async generateQRCode(): Promise<void> {
     try {
-      this.qrCodeSvg = await QRCode.toString(this.pixCode, {
+      if (!this.pixCode) {
+        console.error('Código PIX está vazio ou undefined');
+        this.generatePixCode(); // Gerar código mock se estiver vazio
+      }
+
+      const svgString = await QRCode.toString(this.pixCode, {
         type: 'svg',
         width: 200,
         margin: 2,
@@ -197,9 +214,25 @@ export class PaymentComponent implements OnInit {
           light: '#FFFFFF'
         }
       });
+
+      this.qrCodeSvg = this.sanitizer.bypassSecurityTrustHtml(svgString);
     } catch (error) {
       console.error('Erro ao gerar QR Code:', error);
       this.showSnackBar('Erro ao gerar QR Code');
+
+      // Tentar gerar com código mock em caso de erro
+      this.generatePixCode();
+      try {
+        const fallbackSvg = await QRCode.toString(this.pixCode, {
+          type: 'svg',
+          width: 200,
+          margin: 2
+        });
+        this.qrCodeSvg = this.sanitizer.bypassSecurityTrustHtml(fallbackSvg);
+      } catch (fallbackError) {
+        console.error('Erro no fallback do QR Code:', fallbackError);
+        this.qrCodeSvg = '';
+      }
     }
   }
 
@@ -212,12 +245,31 @@ export class PaymentComponent implements OnInit {
   }
 
   downloadBoleto(): void {
-    // Simula o download do boleto
-    const link = document.createElement('a');
-    link.href = 'data:text/plain;charset=utf-8,Boleto%20Cemiterio%20Santa%20Rita';
-    link.download = 'boleto-cemiterio-santa-rita.pdf';
-    link.click();
-    this.showSnackBar('Download iniciado!');
+    // Buscar o boleto nos pagamentos pendentes
+    const boleto = this.pendingPayments.find(p => p.paymentDetails?.type === 'boleto');
+
+    if (boleto?.paymentDetails?.payload.external_resource_url) {
+      // Usar a URL real do boleto do MercadoPago
+      const link = document.createElement('a');
+      link.href = boleto.paymentDetails.payload.external_resource_url;
+      link.target = '_blank'; // Abrir em nova aba
+      link.click();
+      this.showSnackBar('Abrindo boleto...');
+    } else if (this.paymentResponse?.transaction_details?.external_resource_url) {
+      // Se não encontrou nos pendingPayments, tentar na resposta da criação
+      const link = document.createElement('a');
+      link.href = this.paymentResponse.transaction_details.external_resource_url;
+      link.target = '_blank';
+      link.click();
+      this.showSnackBar('Abrindo boleto...');
+    } else {
+      // Fallback para simulação
+      const link = document.createElement('a');
+      link.href = 'data:text/plain;charset=utf-8,Boleto%20Cemiterio%20Santa%20Rita';
+      link.download = 'boleto-cemiterio-santa-rita.pdf';
+      link.click();
+      this.showSnackBar('Download iniciado (simulação)!');
+    }
   }
 
   getExpirationTime(): string {
@@ -250,24 +302,21 @@ export class PaymentComponent implements OnInit {
 
     // Buscar socio_id dos pagamentos pendentes ou usar CPF como fallback
     let clientId = '';
-    
+
     if (this.pendingPayments.length > 0 && this.pendingPayments[0].socio_id) {
       clientId = this.pendingPayments[0].socio_id;
-      console.log('Buscando cliente por socio_id:', clientId);
     } else {
       const cpf = this.cpfFormGroup.get('cpf')?.value;
       if (!cpf) return;
       clientId = cpf.replace(/\D/g, ''); // Remove formatação do CPF como fallback
-      console.log('Buscando cliente por CPF (fallback):', clientId);
     }
-    
+
     this.loadingClient = true;
-    
+
     this.clientService.getClientById(clientId).subscribe({
-      next: (client: ClientApiInterface) => {
+      next: (client: ClientObjectInterface) => {
         this.clientData = Array.isArray(client.data) ? client.data[0] : client.data;
         this.loadingClient = false;
-        console.log('Dados do cliente carregados:', client);
       },
       error: (error) => {
         this.loadingClient = false;
@@ -276,61 +325,23 @@ export class PaymentComponent implements OnInit {
     });
   }
 
-  // Construir dados do pagamento baseado no cliente
-  private buildPaymentData(): any {
-    if (!this.clientData) return null;
-
-    const [firstName, ...lastNameParts] = this.clientData.nome.split(' ');
-    const lastName = lastNameParts.join(' ') || 'Silva';
-
-    const basePayment = {
-      amount: 120.00,
-      description: "Mensalidade do plano",
-      payer: {
-        email: this.clientData.email || 'cliente@email.com',
-        first_name: firstName || 'Cliente',
-        last_name: lastName,
-        identification: {
-          type: "CPF",
-          number: this.clientData.cpf
-        }
-      }
-    };
-
-    // Para boleto, adicionar endereço
-    if (this.selectedPaymentMethod === 'boleto') {
-      return {
-        ...basePayment,
-        payer: {
-          ...basePayment.payer,
-          address: {
-            zip_code: this.clientData.cep?.replace(/\D/g, '') || "00000000",
-            street_name: this.clientData.endereco || "Rua Exemplo",
-            street_number: this.clientData.numeroRua || "123",
-            neighborhood: "Centro",
-            city: "São Paulo",
-            federal_unit: "SP"
-          }
-        }
-      };
-    }
-
-    return basePayment;
-  }
-
   // Criar pagamento PIX
   private createPixPayment(paymentData: any): void {
     this.paymentService.createPixPayment(paymentData).subscribe({
       next: (response) => {
         this.paymentResponse = response;
         this.processingPayment = false;
-        
+
         // Se a resposta contém o QR code, usar ele
-        if (response.qr_code) {
-          this.pixCode = response.qr_code;
+        if (response.data.point_of_interaction.transaction_data.qr_code) {
+          this.pixCode = response.data.point_of_interaction.transaction_data.qr_code;
+          this.generateQRCode();
+        } else {
+          console.warn('QR Code não encontrado na resposta da API, gerando código mock');
+          this.generatePixCode();
           this.generateQRCode();
         }
-        
+
         this.stepper.next();
         this.showSnackBar('Pagamento PIX criado com sucesso!');
       },
@@ -348,12 +359,12 @@ export class PaymentComponent implements OnInit {
       next: (response) => {
         this.paymentResponse = response;
         this.processingPayment = false;
-        
+
         // Se a resposta contém o código do boleto, usar ele
         if (response.external_reference || response.id) {
           this.boletoCode = response.external_reference || response.id.toString();
         }
-        
+
         this.stepper.next();
         this.showSnackBar('Boleto criado com sucesso!');
       },

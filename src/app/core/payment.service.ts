@@ -15,15 +15,20 @@ export class PaymentService {
 
   // Buscar todos os pagamentos
   getAllPayments(): Observable<PaymentApiInterface> {
-    const url: string = `${this.urlBackEnd}/payment`;
+    const url: string = `${this.urlBackEnd}/payment?type=unpaid`;
     return this.http.get<PaymentApiInterface>(url);
   }
 
-  // Criar novo pagamento
-  createPayment(payment: Partial<PaymentData>): Observable<PaymentData> {
-    console.log('Creating payment with data:', payment);
-    const url: string = `${this.urlBackEnd}/payment`;
-    return this.http.post<PaymentData>(url, payment);
+  // Criar pagamento PIX via MercadoPago
+  createPixPayment(paymentData: any): Observable<any> {
+    const url: string = `${this.urlBackEnd}/v1/payment/mercadopago/pix`;
+    return this.http.post<any>(url, paymentData);
+  }
+
+  // Criar pagamento Boleto via MercadoPago
+  createBoletoPayment(paymentData: any): Observable<any> {
+    const url: string = `${this.urlBackEnd}/v1/payment/mercadopago/boleto`;
+    return this.http.post<any>(url, paymentData);
   }
 
   // Atualizar pagamento
@@ -56,10 +61,30 @@ export class PaymentService {
   getPaymentPlans(): Observable<PaymentPlanApiInterface> {
     const url: string = `${this.urlBackEnd}/plan`;
     return this.http.get<PaymentPlanApiInterface>(url);
-  }  // Criar plano de pagamento
+  }
+
+  // Criar plano de pagamento
   createPaymentPlan(plan: Partial<PaymentPlan>): Observable<PaymentPlan> {
     const url: string = `${this.urlBackEnd}/plan`;
     return this.http.post<PaymentPlan>(url, plan);
+  }
+
+  // Atualizar plano de pagamento
+  updatePaymentPlan(id: string, plan: Partial<PaymentPlan>): Observable<PaymentPlan> {
+    const url: string = `${this.urlBackEnd}/plan/${id}`;
+    return this.http.put<PaymentPlan>(url, plan);
+  }
+
+  // Deletar plano de pagamento
+  deletePaymentPlan(id: string): Observable<void> {
+    const url: string = `${this.urlBackEnd}/plan/${id}`;
+    return this.http.delete<void>(url);
+  }
+
+  // Ativar/Desativar plano
+  togglePlanStatus(id: string, active: boolean): Observable<PaymentPlan> {
+    const url: string = `${this.urlBackEnd}/plan/${id}/toggle`;
+    return this.http.patch<PaymentPlan>(url, { active });
   }
 
   setClientPlan(clientId: string, planId: string): Observable<any> {
@@ -113,17 +138,5 @@ export class PaymentService {
       paidAmount: 120.00,
       pendingAmount: 930.00
     });
-  }
-
-  // Criar pagamento PIX via Mercado Pago
-  createPixPayment(paymentData: any): Observable<any> {
-    const url: string = `${this.urlBackEnd}/payment/mercadopago/pix`;
-    return this.http.post<any>(url, paymentData);
-  }
-
-  // Criar pagamento Boleto via Mercado Pago
-  createBoletoPayment(paymentData: any): Observable<any> {
-    const url: string = `${this.urlBackEnd}/payment/mercadopago/boleto`;
-    return this.http.post<any>(url, paymentData);
   }
 }

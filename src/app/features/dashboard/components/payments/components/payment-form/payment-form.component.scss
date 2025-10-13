@@ -65,6 +65,81 @@
       }
     }
 
+    // Status de pagamentos pendentes
+    .pending-payments-status {
+      margin: 16px 0;
+
+      .loading-message {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px;
+        background: #f5f5f5;
+        border-radius: 8px;
+        color: #666;
+        font-size: 14px;
+      }
+
+      .pending-payments-found {
+        display: flex;
+        gap: 12px;
+        padding: 16px;
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 8px;
+        align-items: flex-start;
+
+        mat-icon {
+          color: #ff9800;
+          margin-top: 2px;
+        }
+
+        .pending-info {
+          flex: 1;
+
+          h5 {
+            margin: 0 0 8px 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #bf360c;
+          }
+
+          p {
+            margin: 0 0 12px 0;
+            font-size: 13px;
+            color: #5d4e75;
+          }
+
+          .pending-payment-details {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 12px;
+
+            span {
+              color: #666;
+            }
+          }
+        }
+      }
+
+      .no-pending-payments {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px;
+        background: #e8f5e8;
+        border: 1px solid #c8e6c9;
+        border-radius: 8px;
+        font-size: 14px;
+        color: #2e7d32;
+
+        mat-icon {
+          color: #4caf50;
+        }
+      }
+    }
+
     // Resumo do pagamento
     .payment-summary {
       background: #e8f5e8;

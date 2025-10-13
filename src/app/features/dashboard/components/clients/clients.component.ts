@@ -293,7 +293,6 @@ export class ClientsComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe((result: ClientPlanAssociationResult) => {
       if (result) {
-        console.log('Associação criada:', result);
         this.paymentService.setClientPlan(result.clientId, result.planId).subscribe({
           next: () => {
             this.popupService.showSuccessMessage(
@@ -322,19 +321,17 @@ export class ClientsComponent implements OnInit {
   }
 
   private deleteClient(id: string): void {
-    try {
-      // Remover do array mockClients
-      this.mockClients = this.mockClients.filter((c: ClientData) => c._id !== id);
-
-      // Atualizar o dataSource
-      this.dataSource.data = this.mockClients;
-      this.applyPagination();
-
-      this.popupService.showSuccessMessage('Cliente excluído com sucesso!');
-    } catch (error) {
-      this.popupService.showErrorMessage('Erro ao excluir cliente. Tente novamente.');
-      console.error('Erro ao excluir cliente:', error);
-    }
+    this.clientService.removeClient(id).subscribe({
+      next: () => {
+        this.popupService.showSuccessMessage('Cliente excluído com sucesso!');
+        // Recarregar a lista de clientes
+        this.getClients();
+      },
+      error: (error) => {
+        console.error('Erro ao excluir cliente:', error);
+        this.popupService.showErrorMessage('Erro ao excluir cliente. Tente novamente.');
+      }
+    });
   }
 
   downloadCard(clienteId: string): void {

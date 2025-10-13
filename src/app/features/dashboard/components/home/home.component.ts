@@ -120,7 +120,7 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
   private loadDashboardData(): void {
     this.dashboardService.loadDashboardData().subscribe({
       next: () => {
-        console.log('Dados do dashboard carregados com sucesso');
+        this.popupService.showSuccessMessage('Dados do dashboard atualizados com sucesso!');
       },
       error: (error) => {
         console.error('Erro ao carregar dados do dashboard:', error);
@@ -380,19 +380,16 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   viewReports(): void {
-    console.log('Abrindo relatórios...');
     this.router.navigate(['/dashboard/reports']);
   }
 
   manageSettings(): void {
-    console.log('Abrindo configurações...');
     this.router.navigate(['/dashboard/configurations']);
   }
 
   // Método para dismissar alertas
   dismissAlert(alertId: number): void {
     this.dashboardService.dismissAlert(alertId);
-    console.log(`Alerta ${alertId} dismissado`);
   }
 
   // Métodos auxiliares para formatação
@@ -435,6 +432,6 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
   // Método para atualizar métricas (forçar refresh dos dados)
   refreshMetrics(): void {
     this.loadDashboardData();
-    console.log('Métricas atualizadas');
+    this.popupService.showSuccessMessage('Métricas atualizadas com sucesso!');
   }
 }

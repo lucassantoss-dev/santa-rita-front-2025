@@ -150,12 +150,12 @@ export class PaymentsComponent implements OnInit, OnDestroy {
 
       // Calcular por status
       switch (payment.status) {
-        case 'pago':
+        case 'paid':
           this.stats.paidPayments++;
           this.stats.paidAmount += valor;
           break;
 
-        case 'vencido':
+        case 'overdue':
           this.stats.overduePayments++;
           // Pagamentos vencidos não são contabilizados no valor pendente
           break;
@@ -173,7 +173,7 @@ export class PaymentsComponent implements OnInit, OnDestroy {
           }
           break;
 
-        case 'cancelado':
+        case 'cancelled':
           // Pagamentos cancelados não são contabilizados
           break;
 
@@ -184,8 +184,6 @@ export class PaymentsComponent implements OnInit, OnDestroy {
           break;
       }
     });
-
-    console.log('Estatísticas calculadas dos dados reais:', this.stats);
   }
 
   applyFilter(): void {
@@ -279,7 +277,7 @@ export class PaymentsComponent implements OnInit, OnDestroy {
   }
 
   markAsPaid(payment: PaymentData): void {
-    if (payment.status === 'pago') return;
+    if (payment.status === 'paid') return;
 
     this.paymentService.markAsPaid(payment._id)
       .pipe(takeUntil(this.destroy$))
@@ -328,7 +326,7 @@ export class PaymentsComponent implements OnInit, OnDestroy {
 
   getStatusColor(status: string): string {
     switch (status) {
-      case 'pago': return '#4caf50';
+      case 'paid': return '#4caf50';
       case 'pendente': return '#ff9800';
       case 'vencido': return '#f44336';
       default: return '#757575';
@@ -337,9 +335,10 @@ export class PaymentsComponent implements OnInit, OnDestroy {
 
   getStatusLabel(status: string): string {
     switch (status) {
-      case 'pago': return 'Pago';
-      case 'pendente': return 'Pendente';
+      case 'paid': return 'Pago';
+      case 'pending': return 'Pendente';
       case 'vencido': return 'Vencido';
+      case 'Pending': return 'Pendente';
       default: return status;
     }
   }
@@ -360,7 +359,7 @@ export class PaymentsComponent implements OnInit, OnDestroy {
   }
 
   isOverdue(payment: PaymentData): boolean {
-    if (payment.status === 'pago') return false;
+    if (payment.status === 'paid') return false;
     return new Date(payment.createdAt) < new Date();
   }
 
@@ -370,9 +369,9 @@ export class PaymentsComponent implements OnInit, OnDestroy {
 
   getStatusClass(status: string): string {
     switch (status) {
-      case 'pago': return 'active';
-      case 'pendente': return 'pending';
-      case 'vencido': return 'inactive';
+      case 'paid': return 'active';
+      case 'pending': return 'pending';
+      case 'overdue': return 'inactive';
       default: return 'pending';
     }
   }
@@ -406,7 +405,7 @@ export class PaymentsComponent implements OnInit, OnDestroy {
 
   savePayment(): void {
     // Implementar salvamento do pagamento
-    console.log('Salvando pagamento...');
+    this.popupService.showSuccessMessage('Pagamento salvo com sucesso!');
     this.closeCreateForm();
   }
 

@@ -100,7 +100,6 @@ export class PlanComponent implements OnInit {
         description: formValue.description,
         id: formValue.id
       };
-      console.log('Plano a ser criado/atualizado:', planPayload);
 
       this.paymentService.createPaymentPlan(planPayload).subscribe({
         next: () => {

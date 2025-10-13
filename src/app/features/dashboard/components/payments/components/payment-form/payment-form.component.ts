@@ -23,10 +23,17 @@ export class PaymentFormComponent implements OnInit {
   isLoading = false;
   clients: ClientInterface[] = [];
   paymentPlans: PaymentPlanCreate[] = [];
+  pendingPayments: PaymentData[] = [];
+  loadingPendingPayments = false;
 
   paymentTypes = [
     { value: 'avulso', label: 'Pagamento Avulso' },
     { value: 'plano', label: 'Plano de Pagamento' }
+  ];
+
+  paymentMethods = [
+    { value: 'pix', label: 'PIX' },
+    { value: 'boleto', label: 'Boleto' }
   ];
 
   constructor(
@@ -49,13 +56,18 @@ export class PaymentFormComponent implements OnInit {
   }
 
   initForm(): void {
+    // Obter a data atual no formato YYYY-MM-DD
+    const today = new Date();
+    const todayString = today.toISOString().split('T')[0];
+
     this.paymentForm = this.fb.group({
       clientId: ['', Validators.required],
       paymentType: ['avulso', Validators.required],
+      paymentMethod: ['pix', Validators.required],
       planType: [''],
       description: ['', Validators.required],
       valor: [0, [Validators.required, Validators.min(0.01)]],
-      vencimento: ['', Validators.required],
+      vencimento: [todayString, Validators.required],
       installments: [1],
       currentInstallment: [1]
     });
@@ -124,11 +136,52 @@ export class PaymentFormComponent implements OnInit {
     const selectedClient = this.clients.find(c => c._id === clientId);
 
     if (selectedClient && !this.payment) {
+      // Buscar pagamentos pendentes para o cliente selecionado
+      this.searchPendingPayments(selectedClient.cpf);
+
       // Auto-preencher descrição padrão para novos pagamentos
       this.paymentForm.patchValue({
         description: `Mensalidade - ${new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}`
       });
     }
+  }
+
+  // Buscar pagamentos pendentes por CPF do cliente
+  private searchPendingPayments(cpf: string): void {
+    if (!cpf) return;
+
+    // Remove formatação do CPF
+    const cleanCpf = cpf.replace(/\D/g, '');
+
+    this.loadingPendingPayments = true;
+    this.pendingPayments = [];
+
+    this.paymentService.getBoletosByCpf(cleanCpf).subscribe({
+      next: (response) => {
+        this.pendingPayments = response.data;
+        this.loadingPendingPayments = false;
+
+        // Se houver pagamentos pendentes, preencher com os dados do primeiro
+        if (this.pendingPayments.length > 0) {
+          const pendingPayment = this.pendingPayments[0];
+
+          this.paymentForm.patchValue({
+            valor: pendingPayment.valor,
+            description: `Pagamento pendente - ${pendingPayment.responsavel}`,
+            vencimento: this.formatISOToDateInput(pendingPayment.vencimento)
+          });
+
+          this.popupService.showSuccessMessage(
+            `Encontrado ${this.pendingPayments.length} pagamento(s) pendente(s) para este cliente.`
+          );
+        }
+      },
+      error: (error) => {
+        this.loadingPendingPayments = false;
+        console.error('Erro ao buscar pagamentos pendentes:', error);
+        // Não mostrar erro se não encontrar pagamentos, isso é normal
+      }
+    });
   }
 
   onPlanChange(): void {
@@ -154,44 +207,93 @@ export class PaymentFormComponent implements OnInit {
       const formData = this.paymentForm.value;
       const selectedClient = this.clients.find(c => c._id === formData.clientId);
 
-      const paymentData: Partial<PaymentData> = {
-        valor: formData.valor,
-        responsavel: selectedClient?.nome || '',
-        quadra: selectedClient?.quadra || '',
-        numero: selectedClient?.numero || '',
-        bairro: selectedClient?.bairro || '',
-        endereco: selectedClient?.endereco || '',
-        cidade: selectedClient?.cidade || '',
-        titular: selectedClient?.nome || '',
-        estado: selectedClient?.estado || '',
-        contato: selectedClient?.contato || '',
-        vencimento: this.formatDateToISO(formData.vencimento),
-        socio_id: formData.clientId,
-        status: 'pending'
+      if (!selectedClient) {
+        this.popupService.showErrorMessage('Cliente não encontrado');
+        this.isLoading = false;
+        return;
+      }
+
+      // Se for um pagamento existente, usar a API original
+      if (this.payment) {
+        const paymentData: Partial<PaymentData> = {
+          valor: formData.valor,
+          responsavel: selectedClient.nome || '',
+          quadra: selectedClient.quadra || '',
+          numero: selectedClient.numero || '',
+          bairro: selectedClient.bairro || '',
+          endereco: selectedClient.endereco || '',
+          cidade: selectedClient.cidade || '',
+          titular: selectedClient.nome || '',
+          estado: selectedClient.estado || '',
+          contato: selectedClient.contato || '',
+          vencimento: this.formatDateToISO(formData.vencimento),
+          socio_id: formData.clientId,
+          status: 'pending'
+        };
+
+        this.paymentService.updatePayment(this.payment._id, paymentData).subscribe({
+          next: (response) => {
+            this.activityService.addPaymentActivity('update', `${selectedClient.nome} - R$ ${formData.valor}`, response._id);
+            this.popupService.showSuccessMessage('Pagamento atualizado com sucesso!');
+            this.saved.emit();
+            this.isLoading = false;
+            this.location.back();
+          },
+          error: (error) => {
+            console.error('Erro ao atualizar pagamento:', error);
+            this.popupService.showErrorMessage('Erro ao atualizar pagamento');
+            this.isLoading = false;
+          }
+        });
+        return;
+      }
+
+      // Para novos pagamentos, usar as APIs do MercadoPago
+      const mercadoPagoData: any = {
+        amount: formData.valor,
+        description: formData.description,
+        payer: {
+          email: selectedClient.email || 'cliente@email.com',
+          first_name: selectedClient.nome.split(' ')[0] || 'Nome',
+          last_name: selectedClient.sobrenome || selectedClient.nome.split(' ').slice(1).join(' ') || 'Sobrenome',
+          identification: {
+            type: 'CPF',
+            number: selectedClient.cpf || '000.000.000-00'
+          }
+        }
       };
 
-      const operation = this.payment
-        ? this.paymentService.updatePayment(this.payment._id, paymentData)
-        : this.paymentService.createPayment(paymentData);
+      // Adicionar dados do endereço para boleto
+      if (formData.paymentMethod === 'boleto') {
+        mercadoPagoData.payer.address = {
+          zip_code: selectedClient.cep || '00000000',
+          street_name: selectedClient.endereco || 'Endereço não informado',
+          street_number: selectedClient.numeroEndereco || selectedClient.numeroRua || '0',
+          neighborhood: selectedClient.bairro || 'Bairro não informado',
+          city: selectedClient.cidade || 'Cidade não informada',
+          federal_unit: selectedClient.estado || 'SP'
+        };
+      }
 
-      operation.subscribe({
+      const paymentOperation = formData.paymentMethod === 'pix'
+        ? this.paymentService.createPixPayment(mercadoPagoData)
+        : this.paymentService.createBoletoPayment(mercadoPagoData);
+
+      paymentOperation.subscribe({
         next: (response) => {
-          const action = this.payment ? 'update' : 'create';
-          const paymentInfo = `${selectedClient?.nome} - R$ ${formData.valor}`;
-
-          // Registrar atividade
-          this.activityService.addPaymentActivity(action, paymentInfo, response._id);
+          const paymentInfo = `${selectedClient.nome} - R$ ${formData.valor} (${formData.paymentMethod.toUpperCase()})`;
+          this.activityService.addPaymentActivity('create', paymentInfo, response.id || response._id);
 
           this.popupService.showSuccessMessage(
-            this.payment ? 'Pagamento atualizado com sucesso!' : 'Pagamento criado com sucesso!'
+            `Pagamento ${formData.paymentMethod.toUpperCase()} criado com sucesso!`
           );
           this.saved.emit();
           this.isLoading = false;
           this.location.back();
         },
         error: (error) => {
-          console.error('Erro ao salvar pagamento:', error);
-          this.popupService.showErrorMessage('Erro ao salvar pagamento');
+          console.error('Erro ao criar pagamento:', error);
+          this.popupService.showErrorMessage(`Erro ao criar pagamento ${formData.paymentMethod.toUpperCase()}`);
           this.isLoading = false;
         }
       });
@@ -201,7 +303,7 @@ export class PaymentFormComponent implements OnInit {
   }
 
   onCancel(): void {
-    this.cancelled.emit();
+    this.location.back();
   }
 
   private markFormGroupTouched(): void {

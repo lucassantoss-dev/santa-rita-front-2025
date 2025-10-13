@@ -66,16 +66,16 @@ export class SidenavComponent implements OnInit {
       });
 
       items.push({
+        icon: 'subscriptions',
+        label: 'Planos',
+        route: 'dashboard/plans'
+      });
+
+      items.push({
         icon: 'account_circle',
         label: 'Meu Perfil',
         route: 'dashboard/profile'
       });
-
-      // items.push({
-      //   icon: 'settings',
-      //   label: 'Configurações',
-      //   route: 'dashboard/configurations'
-      // });
 
       // Divider antes do logout
       items.push({
@@ -89,12 +89,6 @@ export class SidenavComponent implements OnInit {
         label: 'Sair',
         isLogout: true
       });
-
-      // items.push({
-      //   icon: 'settings',
-      //   label: 'Configurações',
-      //   route: 'dashboard/configurations'
-      // });
 
       // const children: MenuItem[] = [];
 

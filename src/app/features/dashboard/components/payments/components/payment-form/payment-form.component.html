@@ -27,6 +27,19 @@
       </mat-error>
     </mat-form-field>
 
+    <!-- Método de Pagamento -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Método de Pagamento *</mat-label>
+      <mat-select formControlName="paymentMethod">
+        <mat-option *ngFor="let method of paymentMethods" [value]="method.value">
+          {{ method.label }}
+        </mat-option>
+      </mat-select>
+      <mat-error *ngIf="isFieldInvalid('paymentMethod')">
+        {{ getFieldError('paymentMethod') }}
+      </mat-error>
+    </mat-form-field>
+
     <!-- Plano de Pagamento (apenas se for tipo plano) -->
     <mat-form-field appearance="outline" class="full-width"
                     *ngIf="paymentForm.get('paymentType')?.value === 'plano'">
@@ -113,6 +126,31 @@
           </div>
         </div>
       </ng-container>
+    </div>
+
+    <!-- Status de Pagamentos Pendentes -->
+    <div class="pending-payments-status" *ngIf="paymentForm.get('clientId')?.value">
+      <div *ngIf="loadingPendingPayments" class="loading-message">
+        <mat-spinner diameter="20"></mat-spinner>
+        <span>Verificando pagamentos pendentes...</span>
+      </div>
+
+      <div *ngIf="!loadingPendingPayments && pendingPayments.length > 0" class="pending-payments-found">
+        <mat-icon color="warn">warning</mat-icon>
+        <div class="pending-info">
+          <h5>{{ pendingPayments.length }} Pagamento(s) Pendente(s) Encontrado(s)</h5>
+          <p>Os dados do primeiro pagamento pendente foram preenchidos automaticamente.</p>
+          <div class="pending-payment-details">
+            <span><strong>Valor:</strong> {{ pendingPayments[0]?.valor | currency:'BRL' }}</span>
+            <span><strong>Vencimento:</strong> {{ pendingPayments[0]?.vencimento | date:'dd/MM/yyyy' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="!loadingPendingPayments && pendingPayments.length === 0 && paymentForm.get('clientId')?.value" class="no-pending-payments">
+        <mat-icon color="primary">check_circle</mat-icon>
+        <span>Nenhum pagamento pendente encontrado para este cliente.</span>
+      </div>
     </div>
 
     <!-- Resumo do Pagamento -->

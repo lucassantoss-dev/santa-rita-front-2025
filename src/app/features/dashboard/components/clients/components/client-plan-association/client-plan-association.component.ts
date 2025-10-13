@@ -92,7 +92,6 @@ export class ClientPlanAssociationComponent implements OnInit {
   loadPaymentPlans(): void {
     this.paymentService.getPaymentPlans().subscribe({
       next: (response: PaymentPlanApiInterface) => {
-        // Mapear PaymentPlanCreate[] para PaymentPlan[] adicionando as propriedades necessárias
         this.paymentPlans = response.data.map(planCreate => ({
           _id: planCreate._id || planCreate.id,
           name: planCreate.name,
@@ -100,9 +99,8 @@ export class ClientPlanAssociationComponent implements OnInit {
           amount: planCreate.amount,
           installments: this.getInstallmentsFromInterval(planCreate.interval),
           frequency: this.getFrequencyFromInterval(planCreate.interval),
-          active: true // Assumimos que todos os planos retornados estão ativos
+          active: true
         }));
-        console.log('Planos carregados:', this.paymentPlans);
       },
       error: (error) => {
         console.error('Erro ao carregar planos:', error);

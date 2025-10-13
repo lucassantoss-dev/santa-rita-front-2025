@@ -6,6 +6,7 @@ import { ClientService } from '../../../../../../core/client.service';
 import { ActivityService } from '../../../../../../core/activity.service';
 import { PopupService } from '../../../../../../shared/popup/popup.service';
 import ClientInterface from '../../../../../../utils/client/clientInterface';
+import { PaymentData } from '../../../../../../utils/payment/paymentInterface';
 
 export interface QuickPaymentData {
   clientId?: string;
@@ -20,6 +21,13 @@ export class QuickPaymentComponent implements OnInit {
   quickPaymentForm!: FormGroup;
   isLoading = false;
   clients: ClientInterface[] = [];
+  pendingPayments: PaymentData[] = [];
+  loadingPendingPayments = false;
+
+  tipoRecebimentoOptions = [
+    { value: 'online', label: 'Online' },
+    { value: 'manual', label: 'Manual' }
+  ];
 
   constructor(
     private fb: FormBuilder,
@@ -41,7 +49,15 @@ export class QuickPaymentComponent implements OnInit {
       clientId: [this.data?.clientId || '', Validators.required],
       valor: [0, [Validators.required, Validators.min(0.01)]],
       diaVencimento: [1, [Validators.required, Validators.min(1), Validators.max(31)]],
-      descricao: ['', Validators.required]
+      descricao: ['', Validators.required],
+      tipoRecebimento: ['online', Validators.required]
+    });
+
+    // Observar mudanças na seleção do cliente
+    this.quickPaymentForm.get('clientId')?.valueChanges.subscribe(clientId => {
+      if (clientId) {
+        this.onClientChange(clientId);
+      }
     });
   }
 
@@ -61,6 +77,57 @@ export class QuickPaymentComponent implements OnInit {
     return `${client.nome} - Quadra ${client.quadra}, Nº ${client.numero}`;
   }
 
+  onClientChange(clientId: string): void {
+    const selectedClient = this.clients.find(c => c._id === clientId);
+
+    if (selectedClient) {
+      // Buscar pagamentos pendentes para o cliente selecionado
+      this.searchPendingPayments(selectedClient.cpf);
+
+      // Auto-preencher descrição padrão
+      this.quickPaymentForm.patchValue({
+        descricao: `Mensalidade - ${new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}`
+      });
+    }
+  }
+
+  // Buscar pagamentos pendentes por CPF do cliente
+  private searchPendingPayments(cpf: string): void {
+    if (!cpf) return;
+
+    // Remove formatação do CPF
+    const cleanCpf = cpf.replace(/\D/g, '');
+
+    this.loadingPendingPayments = true;
+    this.pendingPayments = [];
+
+    this.paymentService.getBoletosByCpf(cleanCpf).subscribe({
+      next: (response) => {
+        this.pendingPayments = response.data;
+        this.loadingPendingPayments = false;
+
+        // Se houver pagamentos pendentes, preencher com os dados do primeiro
+        if (this.pendingPayments.length > 0) {
+          const pendingPayment = this.pendingPayments[0];
+
+          this.quickPaymentForm.patchValue({
+            valor: pendingPayment.valor,
+            descricao: `Pagamento pendente - ${pendingPayment.responsavel}`
+          });
+
+          this.popupService.showSuccessMessage(
+            `Encontrado ${this.pendingPayments.length} pagamento(s) pendente(s) para este cliente.`
+          );
+        }
+      },
+      error: (error) => {
+        this.loadingPendingPayments = false;
+        console.error('Erro ao buscar pagamentos pendentes:', error);
+        // Não mostrar erro se não encontrar pagamentos, isso é normal
+      }
+    });
+  }
+
   onSubmit(): void {
     if (this.quickPaymentForm.valid && !this.isLoading) {
       this.isLoading = true;
@@ -77,9 +144,8 @@ export class QuickPaymentComponent implements OnInit {
         valor: formData.valor,
         diaVencimento: formData.diaVencimento,
         descricao: formData.descricao,
+        tipoRecebimento: formData.tipoRecebimento
       }
-
-      console.log('Dados do pagamento recorrente:', paymentData);
 
       this.paymentService.createRecurringPayment(selectedClient._id as string, paymentData).subscribe({
         next: (response) => {

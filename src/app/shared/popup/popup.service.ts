@@ -97,6 +97,19 @@ export class PopupService {
 
   // Método principal para mostrar popup
   show(config: PopupConfig): void {
+    // Se for um popup de confirmação e já tem um visível, resetar primeiro
+    if (config.type === 'confirm' && this.popupState.getValue().isVisible) {
+      this.resetState();
+      // Aguardar um tick para garantir que o estado foi limpo
+      setTimeout(() => {
+        this.displayPopup(config);
+      }, 50);
+    } else {
+      this.displayPopup(config);
+    }
+  }
+
+  private displayPopup(config: PopupConfig): void {
     const currentState = this.popupState.getValue();
     this.popupState.next({
       ...currentState,
@@ -111,9 +124,25 @@ export class PopupService {
     if (currentState.onClose) {
       currentState.onClose();
     }
+    // Reset completo do estado para evitar problemas entre chamadas
     this.popupState.next({
-      ...currentState,
-      isVisible: false
+      isVisible: false,
+      type: 'info',
+      size: 'medium',
+      title: '',
+      message: '',
+      showCloseButton: true,
+      showConfirmButton: false,
+      showCancelButton: false,
+      confirmText: 'Confirmar',
+      cancelText: 'Cancelar',
+      closeOnBackdropClick: true,
+      icon: '',
+      customClass: '',
+      position: 'center',
+      onConfirm: undefined,
+      onCancel: undefined,
+      onClose: undefined
     });
   }
 
@@ -182,11 +211,40 @@ export class PopupService {
 
   // Confirmação de exclusão
   confirmDelete(itemName: string, onConfirm: () => void): void {
-    this.confirmDialog(
-      'Confirmar Exclusão',
-      `Tem certeza que deseja excluir "${itemName}"? Esta ação não pode ser desfeita.`,
-      onConfirm
-    );
+    // Garantir que o estado anterior está limpo
+    this.resetState();
+
+    // Aguardar um tick antes de mostrar o novo popup
+    setTimeout(() => {
+      this.confirmDialog(
+        'Confirmar Exclusão',
+        `Tem certeza que deseja excluir "${itemName}"? Esta ação não pode ser desfeita.`,
+        onConfirm
+      );
+    }, 50);
+  }
+
+  // Método para resetar completamente o estado
+  private resetState(): void {
+    this.popupState.next({
+      isVisible: false,
+      type: 'info',
+      size: 'medium',
+      title: '',
+      message: '',
+      showCloseButton: true,
+      showConfirmButton: false,
+      showCancelButton: false,
+      confirmText: 'Confirmar',
+      cancelText: 'Cancelar',
+      closeOnBackdropClick: true,
+      icon: '',
+      customClass: '',
+      position: 'center',
+      onConfirm: undefined,
+      onCancel: undefined,
+      onClose: undefined
+    });
   }
 
   // Confirmação genérica customizada

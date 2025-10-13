@@ -212,7 +212,7 @@
             <div class="payment-details">
               <div class="detail-row">
                 <span>Valor:</span>
-                <strong>R$ 120,00</strong>
+                <strong>R$ {{ pendingPayments[0]?.valor }}</strong>
               </div>
               <div class="detail-row">
                 <span>Vencimento:</span>
@@ -266,16 +266,16 @@
               <div class="boleto-details">
                 <h3>Dados do Boleto</h3>
                 <div class="detail-row">
-                  <span>Valor:</span>
-                  <strong>R$ 120,00</strong>
+                  <span style="color: black;">Valor:</span>
+                  <strong style="color: black;">R$ {{ pendingPayments[0]?.valor }}</strong>
                 </div>
                 <div class="detail-row">
-                  <span>Vencimento:</span>
-                  <strong>{{ getBoletoExpirationDate() }}</strong>
+                  <span style="color: black;">Vencimento:</span>
+                  <strong style="color: black;">{{ getBoletoExpirationDate() }}</strong>
                 </div>
                 <div class="detail-row">
-                  <span>Código de Barras:</span>
-                  <strong>{{ boletoCode }}</strong>
+                  <span style="color: black;">Código de Barras:</span>
+                  <strong style="color: black;">{{ boletoCode }}</strong>
                 </div>
               </div>
 
@@ -297,7 +297,7 @@
                   (click)="finishPayment()"
                   class="finish-btn">
             <mat-icon>check</mat-icon>
-            {{ selectedPaymentMethod === 'pix' ? 'Aguardar Pagamento' : 'Finalizar Pagamento' }}
+            {{ selectedPaymentMethod === 'pix' ? 'Finalizar Pagamento' : 'Finalizar Pagamento' }}
           </button>
         </div>
       </mat-step>

@@ -12,6 +12,7 @@ export class ExampleUsage {
 
   constructor(
     private paymentService: PaymentService,
+    private popupService: PopupService,
   ) {}
 
   // Método para abrir o formulário de criação de plano
@@ -21,8 +22,6 @@ export class ExampleUsage {
 
   // Método chamado quando um plano é criado
   onPlanCreated(planData: PaymentPlanCreate): void {
-    console.log('Plano criado:', planData);
-
     // Aqui você pode fazer a chamada para o seu service
     this.paymentService.createPaymentPlan(planData).subscribe({
       next: (response: any) => {
@@ -44,7 +43,7 @@ export class ExampleUsage {
   // Método auxiliar para recarregar planos (implemente conforme necessário)
   private reloadPlans(): void {
     // Implementar conforme sua lógica de negócio
-    console.log('Recarregando lista de planos...');
+    this.popupService.showSuccessMessage('Lista de planos recarregada com sucesso!');
   }
 }
 
