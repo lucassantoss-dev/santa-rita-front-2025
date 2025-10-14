@@ -37,4 +37,9 @@ export class ClientService {
     const url: string = `${this.urlBackEnd}/client/${clientId}`;
     return this.http.delete<ClientInterface>(url);
   }
+
+  updateClient(id: string, client: Omit<ClientInterface, '_id' | 'customerId' | 'createdAt' | 'updatedAt'>): Observable<ClientInterface> {
+    const url: string = `${this.urlBackEnd}/client/${id}`;
+    return this.http.put<ClientInterface>(url, client);
+  }
 }

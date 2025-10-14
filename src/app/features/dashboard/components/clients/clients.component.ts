@@ -14,7 +14,13 @@ import { PaymentService } from '../../../../core/payment.service';
 interface ClientData {
   _id: string;
   nome: string;
+  sobrenome: string;
   endereco: string;
+  cidade: string;
+  estado: string;
+  bairro: string;
+  cep: string;
+  contato: string;
   quadra: string;
   numero: string;
   tipo: string;
@@ -74,8 +80,14 @@ export class ClientsComponent implements OnInit {
   private mockClients: ClientData[] = [
     {
       _id: '1',
-      nome: 'Maria Santos Silva',
-      endereco: 'Rua das Flores, 123 - Centro',
+      nome: 'Maria Santos',
+      sobrenome: 'Silva',
+      endereco: 'Rua das Flores, 123',
+      cidade: 'São Paulo',
+      estado: 'SP',
+      bairro: 'Centro',
+      cep: '01234-567',
+      contato: '(11) 99999-1111',
       quadra: 'A',
       numero: '15',
       tipo: 'Individual',
@@ -83,8 +95,14 @@ export class ClientsComponent implements OnInit {
     },
     {
       _id: '2',
-      nome: 'João Oliveira Costa',
-      endereco: 'Av. Principal, 456 - Vila Nova',
+      nome: 'João Oliveira',
+      sobrenome: 'Costa',
+      endereco: 'Av. Principal, 456',
+      cidade: 'São Paulo',
+      estado: 'SP',
+      bairro: 'Vila Nova',
+      cep: '01234-568',
+      contato: '(11) 99999-2222',
       quadra: 'B',
       numero: '22',
       tipo: 'Familiar',
@@ -92,8 +110,14 @@ export class ClientsComponent implements OnInit {
     },
     {
       _id: '3',
-      nome: 'Ana Paula Rodrigues',
-      endereco: 'Rua do Campo, 789 - Jardim',
+      nome: 'Ana Paula',
+      sobrenome: 'Rodrigues',
+      endereco: 'Rua do Campo, 789',
+      cidade: 'São Paulo',
+      estado: 'SP',
+      bairro: 'Jardim',
+      cep: '01234-569',
+      contato: '(11) 99999-3333',
       quadra: 'C',
       numero: '08',
       tipo: 'Perpétuo',
@@ -101,8 +125,14 @@ export class ClientsComponent implements OnInit {
     },
     {
       _id: '4',
-      nome: 'Carlos Mendes Souza',
-      endereco: 'Rua Nova, 321 - Centro',
+      nome: 'Carlos Mendes',
+      sobrenome: 'Souza',
+      endereco: 'Rua Nova, 321',
+      cidade: 'São Paulo',
+      estado: 'SP',
+      bairro: 'Centro',
+      cep: '01234-570',
+      contato: '(11) 99999-4444',
       quadra: 'A',
       numero: '33',
       tipo: 'Individual',
@@ -110,8 +140,14 @@ export class ClientsComponent implements OnInit {
     },
     {
       _id: '5',
-      nome: 'Helena Ferreira Lima',
-      endereco: 'Av. das Palmeiras, 654 - Parque',
+      nome: 'Helena Ferreira',
+      sobrenome: 'Lima',
+      endereco: 'Av. das Palmeiras, 654',
+      cidade: 'São Paulo',
+      estado: 'SP',
+      bairro: 'Parque',
+      cep: '01234-571',
+      contato: '(11) 99999-5555',
       quadra: 'D',
       numero: '12',
       tipo: 'Familiar',
@@ -162,8 +198,14 @@ export class ClientsComponent implements OnInit {
           if (response && response.data) {
             const mappedData: ClientData[] = response.data.map((client: any) => ({
               _id: client._id || client.id,
-              nome: client.nome || client.name,
-              endereco: client.endereco || client.address,
+              nome: client.nome || client.name || '',
+              sobrenome: client.sobrenome || client.lastName || '',
+              endereco: client.endereco || client.address || '',
+              cidade: client.cidade || client.city || '',
+              estado: client.estado || client.state || client.uf || '',
+              bairro: client.bairro || client.district || '',
+              cep: client.cep || client.zipCode || '',
+              contato: client.contato || client.phone || client.telefone || '',
               quadra: client.quadra || 'A',
               numero: client.numero || '1',
               tipo: client.tipo || 'Individual',
@@ -336,13 +378,37 @@ export class ClientsComponent implements OnInit {
 
   downloadCard(clienteId: string): void {
     try {
-      const cliente = this.pagedData.find(c => c._id === clienteId);
-      if (cliente) {
-        this.docGen.gerarCarteirinha(cliente);
-        this.popupService.showSuccessMessage('Carteirinha gerada com sucesso!');
-      } else {
-        this.popupService.showWarningMessage('Cliente não encontrado.');
-      }
+      // Buscar dados completos do cliente da API
+      this.clientService.getClientById(clienteId).subscribe({
+        next: (response) => {
+          if (response && response.data) {
+            const clienteCompleto = {
+              _id: response.data._id,
+              nome: response.data.nome,
+              sobrenome: response.data.sobrenome,
+              endereco: response.data.endereco,
+              cidade: response.data.cidade,
+              estado: response.data.estado,
+              bairro: response.data.bairro,
+              CEP: response.data.cep, // Note: DocumentGenerator espera "CEP" em maiúsculo
+              contato: response.data.contato,
+              quadra: response.data.quadra,
+              numero: response.data.numero,
+              tipo: response.data.tipo
+            };
+
+            console.log('Dados completos do cliente para carteirinha:', clienteCompleto);
+            this.docGen.gerarCarteirinha(clienteCompleto);
+            this.popupService.showSuccessMessage('Carteirinha gerada com sucesso!');
+          } else {
+            this.popupService.showWarningMessage('Dados do cliente não encontrados.');
+          }
+        },
+        error: (error) => {
+          console.error('Erro ao buscar dados do cliente:', error);
+          this.popupService.showErrorMessage('Erro ao carregar dados do cliente. Tente novamente.');
+        }
+      });
     } catch (error) {
       this.popupService.showErrorMessage('Erro ao gerar carteirinha. Tente novamente.');
       console.error('Erro ao gerar carteirinha:', error);
@@ -351,12 +417,39 @@ export class ClientsComponent implements OnInit {
 
   downloadCertificate(clienteId: string): void {
     try {
-      const cliente = this.pagedData.find(c => c._id === clienteId);
-      if (cliente) {
-        this.docGen.gerarCertificado(cliente);
-      }
+      // Buscar dados completos do cliente da API
+      this.clientService.getClientById(clienteId).subscribe({
+        next: (response) => {
+          if (response && response.data) {
+            const clienteCompleto = {
+              _id: response.data._id,
+              nome: response.data.nome,
+              sobrenome: response.data.sobrenome,
+              endereco: response.data.endereco,
+              cidade: response.data.cidade,
+              estado: response.data.estado,
+              bairro: response.data.bairro,
+              CEP: response.data.cep,
+              contato: response.data.contato,
+              quadra: response.data.quadra,
+              numero: response.data.numero,
+              tipo: response.data.tipo
+            };
+
+            this.docGen.gerarCertificado(clienteCompleto);
+            this.popupService.showSuccessMessage('Certificado gerado com sucesso!');
+          } else {
+            this.popupService.showWarningMessage('Dados do cliente não encontrados.');
+          }
+        },
+        error: (error) => {
+          console.error('Erro ao buscar dados do cliente:', error);
+          this.popupService.showErrorMessage('Erro ao carregar dados do cliente. Tente novamente.');
+        }
+      });
     } catch (error) {
       console.error('Erro ao gerar certificado:', error);
+      this.popupService.showErrorMessage('Erro ao gerar certificado. Tente novamente.');
     }
   }
 
@@ -369,10 +462,16 @@ export class ClientsComponent implements OnInit {
   }
 
   private convertToCSV(data: ClientData[]): string {
-    const headers = ['Nome', 'Endereço', 'Quadra', 'Número', 'Tipo', 'Status'];
+    const headers = ['Nome', 'Sobrenome', 'Endereço', 'Cidade', 'Estado', 'Bairro', 'CEP', 'Contato', 'Quadra', 'Número', 'Tipo', 'Status'];
     const csvData = data.map(row => [
       row.nome,
+      row.sobrenome,
       row.endereco,
+      row.cidade,
+      row.estado,
+      row.bairro,
+      row.cep,
+      row.contato,
       row.quadra,
       row.numero,
       row.tipo,

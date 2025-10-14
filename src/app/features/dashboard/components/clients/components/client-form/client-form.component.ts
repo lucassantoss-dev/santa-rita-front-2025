@@ -9,6 +9,7 @@ import { DashboardService } from '../../../../../../core/dashboard.service';
 import { ActivatedRoute } from '@angular/router';
 import ClientApiInterface from '../../../../../../utils/client/clientApiInterface';
 import ClientObjectInterface from '../../../../../../utils/client/clientObjectInterface';
+import ClientInterface from '../../../../../../utils/client/clientInterface';
 
 @Component({
   selector: 'app-client-form',
@@ -154,24 +155,48 @@ export class ClientFormComponent implements OnInit {
         cep: formValue.cep,
         situacao: "Ativo"
       }
-      this.clientService.createClient(payload).subscribe({
-        next: (response) => {
-          // Adicionar atividade ao dashboard usando o novo ActivityService
-          this.activityService.addClientActivity('create', payload.nome, response._id);
 
-          // Atualizar estatísticas incrementando o total de clientes
-          this.dashboardService.updateStats({
-            totalClients: undefined, // Será recalculado automaticamente
-            newClientsThisMonth: undefined // Será recalculado automaticamente
-          });
+      if (this.edit && this.id) {
+        // Edição de cliente existente
+        this.clientService.updateClient(this.id, payload).subscribe({
+          next: (response: ClientInterface) => {
+            // Adicionar atividade ao dashboard para edição
+            this.activityService.addClientActivity('update', payload.nome, this.id!);
 
-          this.popupService.showSuccessMessage('Cliente cadastrado com sucesso!');
-          this.location.back();
-        },
-        error: (error: Error) => {
-          this.popupService.showErrorMessage('Erro ao cadastrar cliente. Tente novamente. ' + error.message);
-        }
-      });
+            // Atualizar estatísticas
+            this.dashboardService.updateStats({
+              totalClients: undefined, // Será recalculado automaticamente
+              newClientsThisMonth: undefined // Será recalculado automaticamente
+            });
+
+            this.popupService.showSuccessMessage('Cliente atualizado com sucesso!');
+            this.location.back();
+          },
+          error: (error: Error) => {
+            this.popupService.showErrorMessage('Erro ao atualizar cliente. Tente novamente. ' + error.message);
+          }
+        });
+      } else {
+        // Criação de novo cliente
+        this.clientService.createClient(payload).subscribe({
+          next: (response) => {
+            // Adicionar atividade ao dashboard usando o novo ActivityService
+            this.activityService.addClientActivity('create', payload.nome, response._id);
+
+            // Atualizar estatísticas incrementando o total de clientes
+            this.dashboardService.updateStats({
+              totalClients: undefined, // Será recalculado automaticamente
+              newClientsThisMonth: undefined // Será recalculado automaticamente
+            });
+
+            this.popupService.showSuccessMessage('Cliente cadastrado com sucesso!');
+            this.location.back();
+          },
+          error: (error: Error) => {
+            this.popupService.showErrorMessage('Erro ao cadastrar cliente. Tente novamente. ' + error.message);
+          }
+        });
+      }
     } else {
       this.clientForm.markAllAsTouched();
     }

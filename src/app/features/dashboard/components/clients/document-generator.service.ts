@@ -59,7 +59,7 @@ export class DocumentGeneratorService {
     this.header(documento);
     this.inputText(documento, 20, 'SÓCIO CONTRIBUINTE', 175, 50);
     this.input(documento, 145, 55, 125, 8, 'TITULAR', 150, 60);
-    this.inputText(documento, 18, cliente.nome, 165, 62);
+    this.inputText(documento, 18, `${cliente.nome} ${cliente.sobrenome}`, 165, 62);
     this.input(documento, 145, 65, 25, 8, 'QUADRA', 150, 70);
     this.inputText(documento, 16, cliente.quadra ? String(cliente.quadra).toUpperCase() : '', 163, 71);
     this.input(documento, 171, 65, 40, 8, 'TIPO', 172, 70);
@@ -75,7 +75,7 @@ export class DocumentGeneratorService {
     documento.setFontSize(14);
     documento.text('Associação Filantrópica do', 189, 10);
     documento.text('   Cemitério Santa Rita', 189, 19);
-    documento.addImage('assets/nova-logo.jpeg', 'JPEG', 145, 13, 50, 30);
+    documento.addImage('assets/slogan.png', 'PNG', 145, 13, 50, 30);
     documento.setFontSize(8);
     documento.text('Fundada em 14/11/2009', 200, 25);
     documento.text('CPNJ 11.347.229/0001-13', 200, 29);
@@ -89,7 +89,7 @@ export class DocumentGeneratorService {
     this.header1(documento);
     this.header2(documento);
     this.inputText(documento, 35, 'TÍTULO', 130, 70);
-    this.inputText(documento, 22, cliente.nome, 110, 83);
+    this.inputText(documento, 22, `${cliente.nome} ${cliente.sobrenome}`, 110, 83);
     this.inputText(documento, 14, 'QUADRA: ', 70, 130);
     this.inputText(documento, 16, cliente.quadra ? String(cliente.quadra).toUpperCase() : '', 95, 130);
     this.inputText(documento, 16, 'NÚMERO: ', 125, 130);

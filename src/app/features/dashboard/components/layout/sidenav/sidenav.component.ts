@@ -38,7 +38,7 @@ export class SidenavComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    const logoDefault = 'assets/logo.jpg';
+    const logoDefault = 'assets/logo-n.png';
     this.logoUrl = this.config?.config?.branding?.logoUrl || logoDefault;
 
     this.buildMenu();
