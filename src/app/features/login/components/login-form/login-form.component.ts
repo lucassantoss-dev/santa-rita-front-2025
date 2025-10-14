@@ -44,7 +44,7 @@ export class LoginFormComponent implements OnInit {
 					const url = `/dashboard`;
 					this.router.navigate([url]).then((res: boolean) => res).catch((error) => console.error(error));
 				}, error: (error: Error) => {
-					console.error('Ocorreu um erro ao realizar login', error);
+					this.popupService.showErrorMessage('Erro ao realizar login. Verifique suas credenciais e tente novamente.');
 					// Remover navegação automática em caso de erro para debugar
 					// const url = `/dashboard`;
 					// this.router.navigate([url]).then((res: boolean) => res).catch((error) => console.error(error));
