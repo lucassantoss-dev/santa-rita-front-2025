@@ -4,7 +4,8 @@
 
 export const environment = {
     production: false,
-    urlBackEnd: "http://localhost:3300/v1"
+    // urlBackEnd: "http://localhost:3300/v1",
+    urlBackEnd: "https://api.cemiteriosantarita.cloud/v1",
   };
 
   /*
