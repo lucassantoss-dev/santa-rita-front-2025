@@ -1,8 +1,12 @@
 import ClientInterface from "./clientInterface";
 
 export default interface ClientApiInterface {
-  data: ClientInterface[];
-  page: number;
-  pageSize: number;
-  total: number;
+  status: number;
+  message: string;
+  data: {
+    clients: ClientInterface[];
+    total: number;
+    totalPages: number;
+    currentPage: number;
+  };
 }

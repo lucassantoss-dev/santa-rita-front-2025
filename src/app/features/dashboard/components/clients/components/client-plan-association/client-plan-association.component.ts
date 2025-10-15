@@ -78,9 +78,9 @@ export class ClientPlanAssociationComponent implements OnInit {
   }
 
   loadClients(): void {
-    this.clientService.getAllClients().subscribe({
+    this.clientService.getAllClients(1, 1000).subscribe({ // Carregar muitos clientes para dropdown
       next: (response) => {
-        this.clients = response.data || [];
+        this.clients = response.data.clients || [];
       },
       error: (error) => {
         console.error('Erro ao carregar clientes:', error);

@@ -13,8 +13,8 @@ export class ClientService {
   urlBackEnd = environment.urlBackEnd;
   constructor(private http: HttpClient) { }
 
-  getAllClients(): Observable<ClientApiInterface> {
-    const url: string = `${this.urlBackEnd}/client`;
+  getAllClients(page: number = 1, limit: number = 10): Observable<ClientApiInterface> {
+    const url: string = `${this.urlBackEnd}/client?page=${page}&limit=${limit}`;
     return this.http.get<ClientApiInterface>(url);
   }
 

@@ -91,17 +91,17 @@ export class DashboardService {
 
   // Carregar estatísticas de clientes
   private loadClientStats(): Observable<DashboardStats> {
-    return this.clientService.getAllClients().pipe(
+    return this.clientService.getAllClients(1, 10).pipe( // Pegar apenas uma página para estatísticas
       map((response: ClientApiInterface) => {
-        const clients = response.data || [];
+        const clients = response.data.clients || [];
+        const totalClients = response.data.total || 0; // Usar o total da API
         const now = new Date();
         const currentMonth = now.getMonth();
         const currentYear = now.getFullYear();
 
         // Calcular estatísticas baseadas nos dados reais
-        const totalClients = clients.length;
         const activeClients = clients.filter((client: ClientInterface) =>
-          client.situacao === 'Ativo'
+          client.situacao === 'Ativo' || !client.situacao // Considerar sem situação como ativo
         ).length;
 
         // Clientes criados neste mês (baseado na data de criação se disponível)
@@ -114,14 +114,14 @@ export class DashboardService {
           return false;
         }).length;
 
-        // Por enquanto, valores calculados ou estimados para outros dados
+        // Estimativas baseadas no total de clientes da API
         const certificatesIssued = Math.floor(totalClients * 0.3); // Estimar 30% dos clientes
         const certificatesPending = Math.floor(certificatesIssued * 0.1); // 10% pendentes
-        const memberCards = Math.floor(activeClients * 0.8); // 80% dos ativos têm carteirinha
+        const memberCards = Math.floor(totalClients * 0.8); // 80% dos clientes têm carteirinha
         const cardsToRenew = Math.floor(memberCards * 0.05); // 5% para renovar
 
         const stats: DashboardStats = {
-          totalClients,
+          totalClients, // Agora usa o total real da API
           newClientsThisMonth,
           activeClients,
           certificatesIssued,

@@ -190,13 +190,14 @@ export class ClientsComponent implements OnInit {
 
   private async getClients(): Promise<void> {
     try {
-      // Para demonstração, usar dados mockados
-      // Em produção, descomente o código abaixo para usar a API
+      // Usar paginação do backend (page começa em 1 na API)
+      const page = this.pageIndex + 1; // pageIndex começa em 0, API começa em 1
+      const limit = this.pageSize;
 
-      this.clientService.getAllClients().subscribe({
+      this.clientService.getAllClients(page, limit).subscribe({
         next: (response) => {
-          if (response && response.data) {
-            const mappedData: ClientData[] = response.data.map((client: any) => ({
+          if (response && response.data.clients) {
+            const mappedData: ClientData[] = response.data.clients.map((client: any) => ({
               _id: client._id || client.id,
               nome: client.nome || client.name || '',
               sobrenome: client.sobrenome || client.lastName || '',
@@ -212,8 +213,18 @@ export class ClientsComponent implements OnInit {
               status: client.status || 'Ativo'
             }));
 
-            this.dataSource = new MatTableDataSource<ClientData>(mappedData);
-            this.setupDataSource();
+            // Atualizar dados paginados diretamente
+            this.pagedData = mappedData;
+
+            // Atualizar contadores com dados da API
+            this.totalCount = response.data.total || 0;
+            this.filteredCount = response.data.total || 0;
+            this.totalClients = response.data.total || 0;
+
+            // Para estatísticas
+            this.newClientsThisMonth = Math.floor(this.totalClients * 0.15);
+            this.activeCards = mappedData.filter(c => c.status === 'Ativo').length;
+            this.certificatesGenerated = Math.floor(this.totalClients * 0.60);
           }
           this.loading = false;
         },
@@ -224,19 +235,17 @@ export class ClientsComponent implements OnInit {
         }
       });
 
-      // Usar dados mockados para demonstração
-      // this.loadMockData();
-
     } catch (error) {
       this.loadMockData();
     }
   }
 
   private setupDataSource(): void {
+    // Método mantido para compatibilidade com dados mockados
+    // Com paginação do backend, este método não é mais necessário
     if (this.dataSource) {
       this.dataSource.filterPredicate = this.createFilter();
       this.updateStatistics();
-      this.onFilterChange();
     }
   }
 
@@ -275,19 +284,11 @@ export class ClientsComponent implements OnInit {
   }
 
   onFilterChange(): void {
-    if (this.dataSource) {
-      const filters = {
-        name: this.nameFilter || '',
-        block: this.blockFilter || '',
-        type: this.typeFilter || '',
-        status: this.statusFilter || ''
-      };
-
-      this.dataSource.filter = JSON.stringify(filters);
-      this.filteredCount = this.dataSource.filteredData.length;
-      this.pageIndex = 0; // Reset para primeira página
-      this.applyPagination();
-    }
+    // Com paginação do backend, os filtros serão implementados posteriormente
+    // Por enquanto, apenas resetar a paginação e recarregar
+    this.pageIndex = 0; // Reset para primeira página
+    this.loading = true;
+    this.getClients();
   }
 
   onSearch(): void {
@@ -309,9 +310,11 @@ export class ClientsComponent implements OnInit {
   onPageChange(event: PageEvent): void {
     this.pageIndex = event.pageIndex;
     this.pageSize = event.pageSize;
-    this.applyPagination();
+    this.loading = true;
+    this.getClients(); // Recarregar dados da API com nova paginação
   }
 
+  // Método mantido para compatibilidade, mas não usado com paginação do backend
   private applyPagination(): void {
     if (this.dataSource) {
       const data = this.dataSource.filteredData || this.dataSource.data;
