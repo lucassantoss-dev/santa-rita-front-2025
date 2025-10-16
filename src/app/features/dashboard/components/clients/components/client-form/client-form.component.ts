@@ -209,7 +209,7 @@ export class ClientFormComponent implements OnInit {
   private initializeForm() {
     this.clientForm = this.fb.group({
       quadra: ['', Validators.required],
-      complemento: ['', Validators.required],
+      complemento: [''],
       numero: ['', [Validators.required, Validators.pattern('^[0-9]+$')]],
       tipo: ['', Validators.required],
       nome: ['', Validators.required],
