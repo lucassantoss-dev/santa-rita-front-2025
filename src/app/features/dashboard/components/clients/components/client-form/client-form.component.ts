@@ -84,7 +84,7 @@ export class ClientFormComponent implements OnInit {
     this.clientService.getClientById(id).subscribe({
       next: (data: ClientObjectInterface) => {
         this.clientForm.patchValue({
-          quadra: data.data.quadra,
+          quadra: data.data.quadra?.toUpperCase(),
           numero: data.data.numero,
           complemento: data.data.complemento,
           tipo: data.data.tipo,
@@ -137,7 +137,7 @@ export class ClientFormComponent implements OnInit {
     if (this.clientForm.valid) {
       const formValue = this.clientForm.value;
       const payload = {
-        quadra: formValue.quadra,
+        quadra: formValue.quadra?.toLowerCase(), // Converte para minúsculo para o backend
         numero: formValue.numero,
         complemento: formValue.complemento,
         tipo: formValue.tipo,
