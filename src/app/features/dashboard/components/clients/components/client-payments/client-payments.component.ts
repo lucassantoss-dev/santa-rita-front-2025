@@ -43,7 +43,7 @@ export class ClientPaymentsComponent implements OnInit {
 
   currentYear = new Date().getFullYear();
   currentMonth = new Date().getMonth() + 1;
-  yearsToShow = 7; // Mostra 7 anos (atual + 6 anteriores)
+  yearsToShow = 9; // Mostra 9 anos (2021 até 2029: atual + 4 anteriores + 4 posteriores)
 
   constructor(
     private route: ActivatedRoute,
@@ -135,8 +135,11 @@ export class ClientPaymentsComponent implements OnInit {
   private initializePaymentRecords(): void {
     this.paymentRecords = [];
 
-    for (let i = this.yearsToShow - 1; i >= 0; i--) {
-      const year = this.currentYear - i;
+    // Calcular o range de anos: do 2021 até 2029 (4 anos atrás até 4 anos à frente do atual)
+    const startYear = 2021;
+    const endYear = this.currentYear + 4; // 2025 + 4 = 2029
+
+    for (let year = startYear; year <= endYear; year++) {
       const months: any = {};
 
       for (let month = 1; month <= 12; month++) {
@@ -253,7 +256,7 @@ export class ClientPaymentsComponent implements OnInit {
     const currentYear = currentDate.getFullYear();
     const currentMonth = currentDate.getMonth() + 1; // Janeiro = 1
 
-    // Se é um ano futuro
+    // Se é um ano futuro, permitir como clicável
     if (year > currentYear) {
       return 'future';
     }
@@ -342,16 +345,12 @@ export class ClientPaymentsComponent implements OnInit {
       // Se não foi pago, mostrar modal para preencher detalhes do pagamento
       const status = this.getMonthStatus(year, month);
 
-      if (status === 'future') {
-        this.popupService.showInfoMessage(`${monthName}/${year} é um período futuro. Não é possível marcar pagamento antecipadamente.`);
-        return;
-      }
-
       // Verificar se existe um pagamento pendente para marcar como pago
       if (monthData?.paymentId && monthData?.status === 'pending') {
         this.showPaymentDetailsModal(year, month, monthData.paymentId);
       } else {
-        this.popupService.showInfoMessage('Não há pagamento pendente para este período.');
+        // Para meses futuros ou sem pagamento pendente, permitir registro antecipado
+        this.popupService.showInfoMessage('Não há pagamento pendente para este período. Use o botão "Registrar Histórico" para criar pagamentos antecipados.');
       }
     }
   }
