@@ -1,0 +1,182 @@
+<div class="payment-history-container">
+  <!-- Header da Página -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="title-section">
+        <button mat-icon-button (click)="goBack()" class="back-btn">
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+        <div class="title-info">
+          <h1 class="page-title">
+            <mat-icon>payment</mat-icon>
+            Histórico de Pagamentos
+          </h1>
+          <p class="page-subtitle" *ngIf="client">
+            {{ client.nome }} {{ client.sobrenome }} - Quadra {{ client.quadra }}, Nº {{ client.numero }}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estatísticas Rápidas -->
+  <div class="stats-grid" *ngIf="!loading">
+    <mat-card class="stat-card paid">
+      <mat-card-content>
+        <div class="stat-content">
+          <div class="stat-icon">
+            <mat-icon>check_circle</mat-icon>
+          </div>
+          <div class="stat-info">
+            <h3>{{ getTotalPaidMonths() }}</h3>
+            <p>Meses Pagos</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card overdue">
+      <mat-card-content>
+        <div class="stat-content">
+          <div class="stat-icon">
+            <mat-icon>warning</mat-icon>
+          </div>
+          <div class="stat-info">
+            <h3>{{ getTotalOverdueMonths() }}</h3>
+            <p>Em Atraso</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card info">
+      <mat-card-content>
+        <div class="stat-content">
+          <div class="stat-icon">
+            <mat-icon>calendar_today</mat-icon>
+          </div>
+          <div class="stat-info">
+            <h3>{{ currentYear }}</h3>
+            <p>Ano Atual</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Carregando histórico de pagamentos...</p>
+  </div>
+
+  <!-- Tabela de Controle de Mensalidades -->
+  <mat-card class="payment-table-card" *ngIf="!loading">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>table_chart</mat-icon>
+        Controle de Mensalidades
+      </mat-card-title>
+      <div class="card-actions">
+        <button mat-raised-button color="secondary" (click)="createHistory()" style="margin-right: 8px;">
+          <mat-icon>add</mat-icon>
+          Registrar Histórico
+        </button>
+        <button mat-raised-button color="primary" (click)="onCellClick(currentYear, currentMonth)">
+          <mat-icon>add</mat-icon>
+          Registrar Pagamento
+        </button>
+      </div>
+    </mat-card-header>
+    <mat-card-content>
+      <!-- Legenda -->
+      <div class="legend">
+        <div class="legend-item">
+          <div class="legend-color paid"></div>
+          <span>Pago</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color overdue"></div>
+          <span>Em Atraso</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color current"></div>
+          <span>Mês Atual</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color future"></div>
+          <span>Futuro</span>
+        </div>
+      </div>
+
+      <!-- Tabela de Pagamentos -->
+      <div class="payment-table-wrapper">
+        <table class="payment-table">
+          <thead>
+            <tr>
+              <th class="year-header">Ano</th>
+              <th *ngFor="let month of monthNames; let i = index"
+                  class="month-header">
+                {{ month }}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let record of paymentRecords" class="year-row">
+              <td class="year-cell">{{ record.year }}</td>
+              <td *ngFor="let month of monthNames; let i = index"
+                  class="month-cell"
+                  [ngClass]="getMonthStatus(record.year, i + 1)"
+                  [matTooltip]="getMonthTooltip(record.year, i + 1)"
+                  (click)="onCellClick(record.year, i + 1)">
+                <div class="cell-content">
+                  <mat-icon *ngIf="record.months[i + 1]?.paid" class="payment-icon">
+                    check_circle
+                  </mat-icon>
+                  <mat-icon *ngIf="!record.months[i + 1]?.paid && getMonthStatus(record.year, i + 1) === 'overdue'"
+                            class="payment-icon warning-icon">
+                    warning
+                  </mat-icon>
+                  <mat-icon *ngIf="getMonthStatus(record.year, i + 1) === 'pre-contract'"
+                            class="payment-icon">
+                    block
+                  </mat-icon>
+                  <span class="month-label">{{ i + 1 }}</span>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Informações Adicionais -->
+      <div class="additional-info" *ngIf="client">
+        <div class="client-info-section">
+          <h4>Informações do Cliente</h4>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">CPF:</span>
+              <span class="info-value">{{ client.cpf || 'Não informado' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Tipo:</span>
+              <span class="info-value">{{ client.tipo }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Endereço:</span>
+              <span class="info-value">{{ client.endereco }}, {{ client.cidade }}/{{ client.estado }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Contato:</span>
+              <span class="info-value">{{ client.contato || 'Não informado' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Status do Contrato:</span>
+              <span class="info-value">{{ getContractStartInfo() }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

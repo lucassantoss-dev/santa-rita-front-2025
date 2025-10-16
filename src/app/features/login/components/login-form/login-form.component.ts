@@ -12,8 +12,8 @@ import { PopupService } from '../../../../shared/popup/popup.service';
 })
 export class LoginFormComponent implements OnInit {
 	form: FormGroup = this.formBuilder.group({
-		email: new FormControl('lucassantossdev1@gmail.com', [Validators.required]),
-		password: new FormControl('9204Spfc!', [Validators.required]),
+		email: new FormControl('', [Validators.required, Validators.email]),
+		password: new FormControl('', [Validators.required, Validators.minLength(6)]),
 	});
   config: any;
   showPassword = false;
@@ -27,7 +27,34 @@ export class LoginFormComponent implements OnInit {
 	) { }
 
 	ngOnInit(): void {
+    // Garantir que os campos estejam sempre vazios
+    this.form.reset();
+    this.form.patchValue({
+      email: '',
+      password: ''
+    });
+
+    // Limpar qualquer cache de formulário
+    setTimeout(() => {
+      this.clearFormCache();
+    }, 100);
 	}
+
+  private clearFormCache(): void {
+    // Forçar limpeza dos campos para prevenir autocomplete
+    const emailInput = document.getElementById('email') as HTMLInputElement;
+    const passwordInput = document.getElementById('password') as HTMLInputElement;
+
+    if (emailInput) {
+      emailInput.value = '';
+      emailInput.setAttribute('autocomplete', 'new-email');
+    }
+
+    if (passwordInput) {
+      passwordInput.value = '';
+      passwordInput.setAttribute('autocomplete', 'new-password');
+    }
+  }
 
   togglePasswordVisibility() {
     this.showPassword = !this.showPassword;
@@ -38,11 +65,11 @@ export class LoginFormComponent implements OnInit {
 			const formvalue = Object.assign({}, this.form.getRawValue());
 			this.loginService.login(formvalue).subscribe({
 				next: (data: any) => {
+					const url = `/dashboard`;
+					this.router.navigate([url]).then((res: boolean) => res).catch((error) => console.error(error));
 					this.popupService.showSuccessMessage('Login realizado com sucesso!');
 					this.localStorage.setItem('token', data.data.token.token);
 					this.localStorage.setItem('user', data.data.token.user)
-					const url = `/dashboard`;
-					this.router.navigate([url]).then((res: boolean) => res).catch((error) => console.error(error));
 				}, error: (error: Error) => {
 					this.popupService.showErrorMessage('Erro ao realizar login. Verifique suas credenciais e tente novamente.');
 					// Remover navegação automática em caso de erro para debugar

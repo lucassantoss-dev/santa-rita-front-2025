@@ -221,7 +221,7 @@ export class ClientFormComponent implements OnInit {
       cidade: ['', Validators.required],
       bairro: ['', Validators.required],
       estado: ['', Validators.required],
-      contato: ['', Validators.required],
+      contato: [''],
       email: ['', [Validators.email, Validators.pattern(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/)]]
     });
   }

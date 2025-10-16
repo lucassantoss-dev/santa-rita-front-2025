@@ -1,12 +1,54 @@
 /* styles.scss */
-:root {
-  --primary-color: #28a745;
-  --accent-color: #3f51b5;
-  --text-on-primary: #ffffff;
+// Importar tema global
+@import 'styles/theme.scss';
+
+/* Reset básico */
+* {
+  box-sizing: border-box;
 }
 
-/* Use essas variáveis diretamente nos seus estilos */
-body {
-  background-color: var(--primary-color);
-  color: var(--text-on-primary);
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-family-primary);
+  color: var(--text-primary);
+  background-color: var(--bg-secondary);
+}
+
+/* Estilo global para formulários Angular Material */
+.mat-mdc-form-field {
+  &.mat-form-field-appearance-outline {
+    .mat-mdc-form-field-outline {
+      color: var(--border-color);
+    }
+
+    &.mat-focused .mat-mdc-form-field-outline-thick {
+      color: var(--color-primary);
+    }
+
+    .mat-mdc-form-field-focus-overlay {
+      background-color: rgba(40, 167, 69, 0.1);
+    }
+  }
+}
+
+/* Scrollbar personalizada */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-gray-100);
+  border-radius: var(--border-radius-sm);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-gray-400);
+  border-radius: var(--border-radius-sm);
+
+  &:hover {
+    background: var(--color-gray-500);
+  }
 }

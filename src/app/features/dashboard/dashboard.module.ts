@@ -19,6 +19,9 @@ import { ProfileComponent } from './components/profile/profile.component';
 import { ConfigurationsComponent } from './components/configurations/configurations.component';
 import { ClientPlanAssociationComponent } from './components/clients/components/client-plan-association/client-plan-association.component';
 import { PlansComponent } from './components/plans/plans.component';
+import { ClientPaymentsComponent } from './components/clients/components/client-payments/client-payments.component';
+import { HistoryComponent } from './components/clients/components/history/history.component';
+import { PaymentDetailsDialogComponent } from './components/clients/components/client-payments/client-payments.component';
 
 @NgModule({
   declarations: [
@@ -35,7 +38,10 @@ import { PlansComponent } from './components/plans/plans.component';
     ConfigurationsComponent,
     ProfileComponent,
     ClientPlanAssociationComponent,
-    PlansComponent
+    PlansComponent,
+    ClientPaymentsComponent,
+    HistoryComponent,
+    PaymentDetailsDialogComponent
   ],
   imports: [
     CommonModule,

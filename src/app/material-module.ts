@@ -22,6 +22,7 @@ import {MatDialogModule} from "@angular/material/dialog"
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatDividerModule } from "@angular/material/divider";
+import { MatTooltipModule } from "@angular/material/tooltip";
 
 @NgModule({
 exports:[
@@ -48,6 +49,7 @@ exports:[
     MatProgressSpinnerModule,
     MatFormFieldModule,
     MatDividerModule,
+    MatTooltipModule,
 ]
 })
 export class MaterialModule{}

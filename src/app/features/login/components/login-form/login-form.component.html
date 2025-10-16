@@ -1,15 +1,15 @@
 <div class="login-wrapper">
   <div class="login-image"></div>
   <div class="login-form-side">
-    <form [formGroup]="form">
+    <form [formGroup]="form" autocomplete="off" novalidate>
       <div class="container-login-form">
         <div
           class="flex-column align-items-center justify-content-center text-center"
         >
           <img
-            [src]="config?.branding?.logoUrl ? config.branding.logoUrl : 'assets/logo1.png'"
+            [src]="config?.branding?.logoUrl ? config.branding.logoUrl : 'assets/nova-logo1.png'"
             alt="Logo"
-            style="height: 130px; margin-bottom: 30px"
+            style="height: 130px;"
           />
           <p class="login-description">Acesse sua conta</p>
           <p class="login-subdescription">
@@ -26,7 +26,12 @@
               class="form-control email"
               formControlName="email"
               id="email"
+              name="email"
               placeholder="Digite seu e-mail"
+              autocomplete="new-email"
+              spellcheck="false"
+              readonly
+              onfocus="this.removeAttribute('readonly')"
             />
           </div>
           <div class="form-group" style="position: relative">
@@ -35,7 +40,12 @@
               formControlName="password"
               class="form-control"
               id="password"
+              name="password"
               placeholder="Digite sua senha"
+              autocomplete="new-password"
+              spellcheck="false"
+              readonly
+              onfocus="this.removeAttribute('readonly')"
             />
             <button
               type="button"
@@ -47,7 +57,7 @@
                 background: none;
                 border: none;
                 cursor: pointer;
-                color: #fff;
+                color: #28a745;
                 font-size: 16px;
               "
             >
@@ -66,7 +76,7 @@
               class="button-login"
               [ngStyle]="{
                 'background-color':
-                  '#111e31'
+                  '#28a745'
               }"
               (click)="handleLogin()"
             >
@@ -76,7 +86,7 @@
         </div>
         <div class="login-footer">
           <span>Copyright 2025 ® Todos os direitos reservados. Cemitério Santa Rita</span>
-          <span class="login-version">v1.0</span>
+          <span class="login-version">v1.1.0</span>
         </div>
       </div>
     </form>

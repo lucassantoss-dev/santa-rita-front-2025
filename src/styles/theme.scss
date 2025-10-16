@@ -1,0 +1,291 @@
+// ===================================
+// TEMA GLOBAL DO SISTEMA CEMITÉRIO
+// ===================================
+
+// Cores Primárias
+:root {
+  // Paleta Principal (Verde do Cemitério)
+  --color-primary: #28a745;
+  --color-primary-light: #34ce57;
+  --color-primary-dark: #1e7e34;
+  --color-secondary: #20c997;
+  --color-secondary-light: #40e0d0;
+  --color-secondary-dark: #17a2b8;
+
+  // Cores de Status
+  --color-success: #28a745;
+  --color-success-light: #d4edda;
+  --color-success-dark: #155724;
+
+  --color-warning: #ffc107;
+  --color-warning-light: #fff3cd;
+  --color-warning-dark: #856404;
+
+  --color-error: #dc3545;
+  --color-error-light: #f8d7da;
+  --color-error-dark: #721c24;
+
+  --color-info: #17a2b8;
+  --color-info-light: #d1ecf1;
+  --color-info-dark: #0c5460;
+
+  // Tons de Cinza
+  --color-gray-50: #f8f9fa;
+  --color-gray-100: #e9ecef;
+  --color-gray-200: #dee2e6;
+  --color-gray-300: #ced4da;
+  --color-gray-400: #adb5bd;
+  --color-gray-500: #6c757d;
+  --color-gray-600: #495057;
+  --color-gray-700: #343a40;
+  --color-gray-800: #212529;
+  --color-gray-900: #1a1e21;
+
+  // Cores de Texto
+  --text-primary: #2c3e50;
+  --text-secondary: #6c757d;
+  --text-muted: #868e96;
+  --text-light: #f8f9fa;
+  --text-white: #ffffff;
+
+  // Backgrounds
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-light: #e9ecef;
+  --bg-dark: #343a40;
+  --bg-gradient-primary: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+  --bg-gradient-light: linear-gradient(135deg, var(--color-gray-50) 0%, var(--color-gray-100) 100%);
+
+  // Sombras
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 2px 12px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 4px 20px rgba(0, 0, 0, 0.15);
+  --shadow-xl: 0 8px 32px rgba(0, 0, 0, 0.2);
+
+  // Bordas
+  --border-width: 1px;
+  --border-color: var(--color-gray-200);
+  --border-color-light: var(--color-gray-100);
+  --border-radius-sm: 6px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  --border-radius-xl: 16px;
+  --border-radius-full: 50%;
+
+  // Espaçamentos
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 20px;
+  --space-2xl: 24px;
+  --space-3xl: 32px;
+  --space-4xl: 40px;
+  --space-5xl: 48px;
+  --space-6xl: 64px;
+
+  // Tipografia
+  --font-family-primary: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-family-mono: 'SF Mono', Monaco, Inconsolata, 'Roboto Mono', monospace;
+
+  --font-size-xs: 0.75rem;    // 12px
+  --font-size-sm: 0.875rem;   // 14px
+  --font-size-base: 1rem;     // 16px
+  --font-size-lg: 1.125rem;   // 18px
+  --font-size-xl: 1.25rem;    // 20px
+  --font-size-2xl: 1.5rem;    // 24px
+  --font-size-3xl: 1.875rem;  // 30px
+  --font-size-4xl: 2.25rem;   // 36px
+
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  // Transições
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.2s ease;
+  --transition-slow: 0.3s ease;
+  --transition-bounce: 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+  // Z-index
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+}
+
+// ===================================
+// MIXINS UTILITÁRIOS
+// ===================================
+
+// Mixin para cards padronizados
+@mixin card-style($shadow: var(--shadow-md)) {
+  background: var(--bg-primary);
+  border-radius: var(--border-radius-lg);
+  box-shadow: $shadow;
+  border: none;
+  transition: var(--transition-normal);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+}
+
+// Mixin para botões primários
+@mixin button-primary {
+  background: var(--bg-gradient-primary);
+  color: var(--text-white);
+  border: none;
+  border-radius: var(--border-radius-md);
+  padding: var(--space-md) var(--space-xl);
+  font-weight: var(--font-weight-medium);
+  transition: var(--transition-normal);
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
+// Mixin para gradientes de fundo
+@mixin gradient-background($direction: 135deg) {
+  background: linear-gradient($direction, var(--color-gray-50) 0%, var(--color-gray-100) 100%);
+}
+
+// Mixin para textos truncados
+@mixin text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// Mixin para containers responsivos
+@mixin container-responsive {
+  padding: var(--space-2xl);
+
+  @media (max-width: 768px) {
+    padding: var(--space-lg);
+  }
+
+  @media (max-width: 480px) {
+    padding: var(--space-md);
+  }
+}
+
+// Mixin para ícones padronizados
+@mixin icon-style($size: 24px, $color: var(--color-primary)) {
+  font-size: $size;
+  width: $size;
+  height: $size;
+  color: $color;
+}
+
+// ===================================
+// CLASSES UTILITÁRIAS
+// ===================================
+
+// Estados visuais
+.status-active {
+  color: var(--color-success);
+  background-color: var(--color-success-light);
+}
+
+.status-inactive {
+  color: var(--color-gray-500);
+  background-color: var(--color-gray-100);
+}
+
+.status-pending {
+  color: var(--color-warning-dark);
+  background-color: var(--color-warning-light);
+}
+
+.status-error {
+  color: var(--color-error);
+  background-color: var(--color-error-light);
+}
+
+// Tipos de cliente
+.type-individual {
+  color: var(--color-info);
+  background-color: var(--color-info-light);
+}
+
+.type-familiar {
+  color: var(--color-success);
+  background-color: var(--color-success-light);
+}
+
+.type-perpetuo {
+  color: #9c27b0;
+  background-color: rgba(156, 39, 176, 0.1);
+}
+
+// Badges padronizados
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-xs) var(--space-md);
+  border-radius: var(--border-radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+// Loading states
+.loading-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6xl) var(--space-2xl);
+  text-align: center;
+
+  p {
+    margin-top: var(--space-2xl);
+    color: var(--text-secondary);
+    font-size: var(--font-size-base);
+  }
+}
+
+// Empty states
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6xl) var(--space-2xl);
+  text-align: center;
+
+  mat-icon {
+    @include icon-style(64px, var(--text-secondary));
+    opacity: 0.5;
+    margin-bottom: var(--space-2xl);
+  }
+
+  h3 {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-medium);
+    color: var(--text-primary);
+    margin: 0 0 var(--space-md) 0;
+  }
+
+  p {
+    font-size: var(--font-size-base);
+    color: var(--text-secondary);
+    margin: 0 0 var(--space-3xl) 0;
+    max-width: 400px;
+  }
+}

@@ -10,6 +10,7 @@ import { PlanComponent } from './components/payments/components/plan/plan.compon
 import { ConfigurationsComponent } from './components/configurations/configurations.component';
 import { ProfileComponent } from './components/profile/profile.component';
 import { PlansComponent } from './components/plans/plans.component';
+import { ClientPaymentsComponent } from './components/clients/components/client-payments/client-payments.component';
 
 const routes: Routes = [
   {
@@ -36,6 +37,10 @@ const routes: Routes = [
       {
         path: 'client-edit/:id',
         component: ClientFormComponent
+      },
+      {
+        path: 'client-payments/:id',
+        component: ClientPaymentsComponent
       },
       {
         path: 'payments',

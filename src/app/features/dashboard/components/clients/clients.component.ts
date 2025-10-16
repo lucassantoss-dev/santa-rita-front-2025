@@ -9,6 +9,7 @@ import { animate, state, style, transition, trigger } from '@angular/animations'
 import { PopupService } from '../../../../shared/popup/popup.service';
 import { MatDialog } from '@angular/material/dialog';
 import { ClientPlanAssociationComponent, ClientPlanAssociationResult } from './components/client-plan-association/client-plan-association.component';
+import { HistoryComponent } from './components/history/history.component';
 import { PaymentService } from '../../../../core/payment.service';
 
 interface ClientData {
@@ -56,6 +57,7 @@ export class ClientsComponent implements OnInit {
   // Filtros
   nameFilter: string = '';
   blockFilter: string = '';
+  numberFilter: string = '';
   typeFilter: string = '';
   statusFilter: string = '';
   filtersExpanded: boolean = true;
@@ -75,6 +77,7 @@ export class ClientsComponent implements OnInit {
   // Contadores
   totalCount: number = 0;
   filteredCount: number = 0;
+  isSearchActive: boolean = false; // Indica se está exibindo resultados de busca
 
   // Dados mockados para demonstração
   private mockClients: ClientData[] = [
@@ -220,6 +223,7 @@ export class ClientsComponent implements OnInit {
             this.totalCount = response.data.total || 0;
             this.filteredCount = response.data.total || 0;
             this.totalClients = response.data.total || 0;
+            this.isSearchActive = false; // Make sure this is false for regular data load
 
             // Para estatísticas
             this.newClientsThisMonth = Math.floor(this.totalClients * 0.15);
@@ -241,8 +245,6 @@ export class ClientsComponent implements OnInit {
   }
 
   private setupDataSource(): void {
-    // Método mantido para compatibilidade com dados mockados
-    // Com paginação do backend, este método não é mais necessário
     if (this.dataSource) {
       this.dataSource.filterPredicate = this.createFilter();
       this.updateStatistics();
@@ -254,10 +256,14 @@ export class ClientsComponent implements OnInit {
       const searchString = JSON.parse(filter);
 
       const nameMatch = !searchString.name ||
-        data.nome.toLowerCase().includes(searchString.name.toLowerCase());
+        data.nome.toLowerCase().includes(searchString.name.toLowerCase()) ||
+        data.sobrenome.toLowerCase().includes(searchString.name.toLowerCase());
 
       const blockMatch = !searchString.block ||
         data.quadra.toLowerCase().includes(searchString.block.toLowerCase());
+
+      const numberMatch = !searchString.number ||
+        data.numero.toLowerCase().includes(searchString.number.toLowerCase());
 
       const typeMatch = !searchString.type ||
         data.tipo.toLowerCase() === searchString.type.toLowerCase();
@@ -265,7 +271,7 @@ export class ClientsComponent implements OnInit {
       const statusMatch = !searchString.status ||
         (data.status || 'Ativo').toLowerCase() === searchString.status.toLowerCase();
 
-      return nameMatch && blockMatch && typeMatch && statusMatch;
+      return nameMatch && blockMatch && numberMatch && typeMatch && statusMatch;
     };
   }
 
@@ -284,23 +290,88 @@ export class ClientsComponent implements OnInit {
   }
 
   onFilterChange(): void {
-    // Com paginação do backend, os filtros serão implementados posteriormente
-    // Por enquanto, apenas resetar a paginação e recarregar
-    this.pageIndex = 0; // Reset para primeira página
-    this.loading = true;
-    this.getClients();
+    // Remove auto-search on input change since we now have a search button
+    // The search will only be triggered when the user clicks the search button
   }
 
   onSearch(): void {
-    this.onFilterChange();
+    this.pageIndex = 0; // Reset to first page
+    this.loading = true;
+
+    // Use search API if any filter is provided, otherwise get all clients
+    if (this.nameFilter.trim() || this.blockFilter.trim() || this.numberFilter.trim()) {
+      this.isSearchActive = true;
+      this.searchClients();
+    } else {
+      this.isSearchActive = false;
+      this.getClients();
+    }
+  }
+
+  private searchClients(): void {
+    const searchParams = {
+      nome: this.nameFilter.trim(),
+      quadra: this.blockFilter.trim(),
+      numero: this.numberFilter.trim()
+    };
+
+    this.clientService.searchClients(searchParams).subscribe({
+      next: (response) => {
+        if (response && response.data.clients) {
+          const mappedData: ClientData[] = response.data.clients.map((client: any) => ({
+            _id: client._id || client.id,
+            nome: client.nome || client.name || '',
+            sobrenome: client.sobrenome || client.lastName || '',
+            endereco: client.endereco || client.address || '',
+            cidade: client.cidade || client.city || '',
+            estado: client.estado || client.state || client.uf || '',
+            bairro: client.bairro || client.district || '',
+            cep: client.cep || client.zipCode || '',
+            contato: client.contato || client.phone || client.telefone || '',
+            quadra: client.quadra || 'A',
+            numero: client.numero || '1',
+            tipo: client.tipo || 'Individual',
+            status: client.status || 'Ativo'
+          }));
+
+          // Update paged data directly with search results
+          this.pagedData = mappedData;
+
+          // Update counters with search results
+          this.totalCount = response.data.total || mappedData.length;
+          this.filteredCount = mappedData.length;
+
+          // Update statistics
+          this.newClientsThisMonth = Math.floor(mappedData.length * 0.15);
+          this.activeCards = mappedData.filter(c => c.status === 'Ativo').length;
+          this.certificatesGenerated = Math.floor(mappedData.length * 0.60);
+        } else {
+          // No results found
+          this.pagedData = [];
+          this.totalCount = 0;
+          this.filteredCount = 0;
+          this.newClientsThisMonth = 0;
+          this.activeCards = 0;
+          this.certificatesGenerated = 0;
+        }
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Erro ao buscar clientes:', error);
+        this.popupService.showErrorMessage('Erro ao buscar clientes. Tente novamente.');
+        this.loading = false;
+      }
+    });
   }
 
   clearFilters(): void {
     this.nameFilter = '';
     this.blockFilter = '';
+    this.numberFilter = '';
     this.typeFilter = '';
     this.statusFilter = '';
-    this.onFilterChange();
+    this.isSearchActive = false;
+    this.onSearch(); // Trigger search after clearing filters to show all clients
   }
 
   toggleFilters(): void {
@@ -311,7 +382,15 @@ export class ClientsComponent implements OnInit {
     this.pageIndex = event.pageIndex;
     this.pageSize = event.pageSize;
     this.loading = true;
-    this.getClients(); // Recarregar dados da API com nova paginação
+
+    // Check if we have active filters, if so use search, otherwise use regular pagination
+    if (this.nameFilter.trim() || this.blockFilter.trim() || this.numberFilter.trim()) {
+      this.isSearchActive = true;
+      this.searchClients();
+    } else {
+      this.isSearchActive = false;
+      this.getClients(); // Regular pagination for all clients
+    }
   }
 
   // Método mantido para compatibilidade, mas não usado com paginação do backend
@@ -354,6 +433,29 @@ export class ClientsComponent implements OnInit {
 
   onEdit(id: string): void {
     this.router.navigate([`/dashboard/client-edit/${id}`]);
+  }
+
+  onCreateHistory(): void {
+    const dialogRef = this.dialog.open(HistoryComponent, {
+      width: '650px',
+      maxWidth: '90vw',
+      disableClose: true,
+      data: {
+        clientId: undefined,
+        clientName: undefined
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        // Se retornou true, significa que criou histórico com sucesso
+        console.log('Histórico criado com sucesso');
+      }
+    });
+  }
+
+  onViewPayments(id: string): void {
+    this.router.navigate([`/dashboard/client-payments/${id}`]);
   }
 
   onDelete(id: string): void {

@@ -101,6 +101,12 @@ export class PaymentService {
     return this.http.post<any>(url, planData);
   }
 
+  // Buscar pagamentos por cliente
+  getPaymentsByClientId(clientId: string): Observable<any> {
+    const url: string = `${this.urlBackEnd}/monthly-payment-status/client/${clientId}/history`;
+    return this.http.get<any>(url);
+  }
+
   // Buscar estatísticas de pagamentos
   getPaymentStats(): Observable<PaymentStats> {
     const url: string = `${this.urlBackEnd}/payment/stats`;
@@ -111,6 +117,12 @@ export class PaymentService {
   createRecurringPayment(clientId: string, recurringData: any): Observable<any> {
     const url: string = `${this.urlBackEnd}/payment/recurrence/${clientId}`;
     return this.http.post<any>(url, recurringData);
+  }
+
+  // Marcar pagamento como pago
+  markPaymentAsPaid(paymentId: string, paymentData: any): Observable<any> {
+    const url: string = `${this.urlBackEnd}/monthly-payment-status/${paymentId}/mark-paid`;
+    return this.http.patch<any>(url, paymentData);
   }
 
   // Método temporário com dados mockados para desenvolvimento
