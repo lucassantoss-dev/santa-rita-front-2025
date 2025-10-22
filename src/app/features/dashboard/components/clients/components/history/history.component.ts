@@ -5,6 +5,7 @@ import { ClientService } from '../../../../../../core/client.service';
 import { PopupService } from '../../../../../../shared/popup/popup.service';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap, filter, takeUntil } from 'rxjs/operators';
+import { DateAdapter } from '@angular/material/core';
 
 interface HistoryData {
   clientId?: string;
@@ -98,6 +99,57 @@ export class HistoryComponent implements OnInit, OnDestroy {
       defaultStatus: ['pending', Validators.required],
       amount: [0, [Validators.required, Validators.min(0.01)]]
     });
+  }
+
+  onDateInput(event: any, controlName: string): void {
+    const input = event.target.value;
+    if (input && typeof input === 'string') {
+      const date = this.parseDate(input);
+      if (date) {
+        this.historyForm.get(controlName)?.setValue(date);
+        this.historyForm.get(controlName)?.markAsTouched();
+      }
+    }
+  }
+
+  private parseDate(dateString: string): Date | null {
+    if (!dateString || typeof dateString !== 'string') {
+      return null;
+    }
+
+    const cleanValue = dateString.trim();
+    const brazilianDateRegex = /^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/;
+    const match = cleanValue.match(brazilianDateRegex);
+
+    if (match) {
+      const day = parseInt(match[1], 10);
+      const month = parseInt(match[2], 10);
+      let year = parseInt(match[3], 10);
+
+      // Se o ano tem 2 dígitos, assumir século 21 para anos <= 30, século 20 para anos > 30
+      if (year < 100) {
+        if (year <= 30) {
+          year += 2000;
+        } else {
+          year += 1900;
+        }
+      }
+
+      // Verificar se os valores estão em ranges válidos
+      if (day >= 1 && day <= 31 && month >= 1 && month <= 12 && year >= 1900 && year <= 2100) {
+        // Criar a data
+        const date = new Date(year, month - 1, day);
+
+        // Verificar se a data criada corresponde aos valores fornecidos
+        if (date.getFullYear() === year &&
+            date.getMonth() === month - 1 &&
+            date.getDate() === day) {
+          return date;
+        }
+      }
+    }
+
+    return null;
   }
 
   onSubmit(): void {
