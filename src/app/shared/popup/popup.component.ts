@@ -148,7 +148,8 @@ export class PopupComponent implements OnInit, OnDestroy {
   get overlayClasses(): string {
     const classes = [
       'popup-overlay',
-      `overlay-position-${this.position}`
+      `overlay-position-${this.position}`,
+      this.customClass
     ];
     return classes.filter(cls => cls).join(' ');
   }

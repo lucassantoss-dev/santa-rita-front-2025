@@ -30,6 +30,11 @@
   padding: 20px;
   box-sizing: border-box;
 
+  // Z-index mais alto para modais de confirmação sobre outros modais
+  &.high-z-index {
+    z-index: 2000;
+  }
+
   // Posicionamentos
   &.overlay-position-center {
     align-items: center;

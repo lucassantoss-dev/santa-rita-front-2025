@@ -1,0 +1,168 @@
+<div class="observations-modal">
+  <div class="modal-header">
+    <div class="header-content">
+      <div class="header-text">
+        <h2 mat-dialog-title>
+          <mat-icon>note_alt</mat-icon>
+          Observações - {{ data.client.nome }} {{ data.client.sobrenome }}
+        </h2>
+        <p class="header-subtitle">
+          Anotações e acordos sobre o cliente
+        </p>
+      </div>
+    </div>
+    <button mat-icon-button (click)="onCancel()" class="close-button">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div mat-dialog-content class="modal-content">
+    <!-- Formulário para nova observação / edição -->
+    <div class="observation-form-section">
+      <form [formGroup]="observationForm" (ngSubmit)="onSubmit()" class="observation-form">
+        <div class="form-header">
+          <div class="form-title">
+            <mat-icon>{{ editingObservationId ? 'edit' : 'add' }}</mat-icon>
+            <span>{{ editingObservationId ? 'Editar Observação' : 'Nova Observação' }}</span>
+          </div>
+          <button type="button"
+                  *ngIf="editingObservationId"
+                  mat-icon-button
+                  (click)="cancelEdit()"
+                  class="cancel-edit-btn"
+                  matTooltip="Cancelar edição">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="category-field">
+            <mat-label>Categoria</mat-label>
+            <mat-select formControlName="category" required>
+              <mat-option *ngFor="let category of categories" [value]="category.value">
+                <mat-icon>{{ category.icon }}</mat-icon>
+                {{ category.label }}
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="observationForm.get('category')?.hasError('required')">
+              Categoria é obrigatória
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline" class="comment-field">
+          <mat-label>Descrição</mat-label>
+          <textarea matInput
+                    formControlName="description"
+                    placeholder="Digite sua observação, acordo ou anotação sobre o cliente..."
+                    rows="3"
+                    maxlength="500"></textarea>
+          <mat-hint align="end">{{ observationForm.get('description')?.value?.length || 0 }}/500</mat-hint>
+          <mat-error *ngIf="observationForm.get('description')?.hasError('required')">
+            Descrição é obrigatória
+          </mat-error>
+          <mat-error *ngIf="observationForm.get('description')?.hasError('minlength')">
+            Descrição deve ter pelo menos 5 caracteres
+          </mat-error>
+          <mat-error *ngIf="observationForm.get('description')?.hasError('maxlength')">
+            Descrição não pode exceder 500 caracteres
+          </mat-error>
+        </mat-form-field>
+
+        <div class="form-actions">
+          <button type="submit"
+                  mat-raised-button
+                  color="primary"
+                  [disabled]="observationForm.invalid || loading"
+                  class="submit-btn">
+            <mat-icon *ngIf="!loading">{{ editingObservationId ? 'save' : 'add' }}</mat-icon>
+            <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
+            <span *ngIf="!loading">{{ editingObservationId ? 'Salvar Alterações' : 'Adicionar Observação' }}</span>
+            <span *ngIf="loading">{{ editingObservationId ? 'Salvando...' : 'Adicionando...' }}</span>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Lista de Observações -->
+    <div class="observations-section">
+      <div class="section-header">
+        <h3>
+          <mat-icon>history</mat-icon>
+          Histórico de Observações
+          <span class="count" *ngIf="observations.length > 0">({{ observations.length }})</span>
+        </h3>
+      </div>
+
+      <!-- Loading -->
+      <div *ngIf="loading && observations.length === 0" class="loading-section">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p>Carregando observações...</p>
+      </div>
+
+      <!-- Estado vazio -->
+      <div *ngIf="!loading && observations.length === 0" class="empty-state">
+        <mat-icon>note_add</mat-icon>
+        <h4>Nenhuma observação encontrada</h4>
+        <p>Adicione a primeira observação sobre este cliente usando o formulário acima.</p>
+      </div>
+
+      <!-- Lista de observações -->
+      <div class="observations-list" *ngIf="observations.length > 0">
+        <div *ngFor="let observation of observations; trackBy: trackByObservationId"
+             class="observation-card"
+             [class.editing]="editingObservationId === observation._id">
+
+          <!-- Header do card -->
+          <div class="card-header">
+            <div class="timestamp-info">
+              <div class="category-badge">
+                <mat-icon>{{ getCategoryIcon(observation.category) }}</mat-icon>
+                <span>{{ getCategoryLabel(observation.category) }}</span>
+              </div>
+              <div class="relative-time">{{ formatRelativeTime(observation.createdAt) }}</div>
+              <div class="absolute-time">{{ formatDate(observation.createdAt) }}</div>
+              <div class="author" *ngIf="observation.createdBy">
+                <mat-icon>person</mat-icon>
+                {{ observation.createdBy }}
+              </div>
+              <div class="updated-info" *ngIf="observation.updatedAt && observation.updatedAt !== observation.createdAt">
+                <mat-icon>edit</mat-icon>
+                <span>Editado {{ formatRelativeTime(observation.updatedAt) }}</span>
+              </div>
+            </div>
+
+            <div class="card-actions">
+              <button mat-icon-button
+                      (click)="editObservation(observation)"
+                      [disabled]="loading"
+                      matTooltip="Editar observação"
+                      class="edit-btn">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button
+                      (click)="deleteObservation(observation)"
+                      [disabled]="loading"
+                      matTooltip="Excluir observação"
+                      class="delete-btn">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </div>
+
+          <!-- Conteúdo do card -->
+          <div class="card-content">
+            <p class="observation-text">{{ observation.description }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div mat-dialog-actions class="modal-actions">
+    <button mat-button (click)="onCancel()" [disabled]="loading" class="cancel-btn">
+      <mat-icon>close</mat-icon>
+      Fechar
+    </button>
+  </div>
+</div>

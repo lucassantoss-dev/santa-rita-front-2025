@@ -90,6 +90,7 @@ export class PopupService {
       message,
       showConfirmButton: true,
       showCancelButton: true,
+      customClass: 'high-z-index', // Classe para z-index mais alto
       onConfirm,
       onCancel
     });

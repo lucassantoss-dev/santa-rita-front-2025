@@ -7,6 +7,7 @@ import { PaymentService } from '../../../../../../core/payment.service';
 import { PopupService } from '../../../../../../shared/popup/popup.service';
 import { LocalStorageService } from '../../../../../../core/local-storage.service';
 import { HistoryComponent } from '../history/history.component';
+import { ClientObservationsComponent } from '../client-observations/client-observations.component';
 import ClientInterface from '../../../../../../utils/client/clientInterface';
 
 interface PaymentRecord {
@@ -129,6 +130,28 @@ export class ClientPaymentsComponent implements OnInit {
         // Recarregar os dados de pagamento para refletir o novo histórico
         this.loadPaymentRecords();
       }
+    });
+  }
+
+  openObservationsModal(): void {
+    if (!this.client) {
+      this.popupService.showErrorMessage('Dados do cliente não carregados');
+      return;
+    }
+
+    const dialogRef = this.dialog.open(ClientObservationsComponent, {
+      width: '800px',
+      maxWidth: '90vw',
+      maxHeight: '90vh',
+      disableClose: false,
+      data: {
+        client: this.client
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      // Não precisa recarregar nada, as observações são independentes
+      console.log('Modal de observações fechado');
     });
   }
 

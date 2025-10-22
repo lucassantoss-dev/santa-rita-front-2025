@@ -22,6 +22,7 @@ import { PlansComponent } from './components/plans/plans.component';
 import { ClientPaymentsComponent } from './components/clients/components/client-payments/client-payments.component';
 import { HistoryComponent } from './components/clients/components/history/history.component';
 import { PaymentDetailsDialogComponent } from './components/clients/components/client-payments/client-payments.component';
+import { ClientObservationsComponent } from './components/clients/components/client-observations/client-observations.component';
 
 @NgModule({
   declarations: [
@@ -41,7 +42,8 @@ import { PaymentDetailsDialogComponent } from './components/clients/components/c
     PlansComponent,
     ClientPaymentsComponent,
     HistoryComponent,
-    PaymentDetailsDialogComponent
+    PaymentDetailsDialogComponent,
+    ClientObservationsComponent
   ],
   imports: [
     CommonModule,
